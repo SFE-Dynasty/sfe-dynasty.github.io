@@ -1,0 +1,53 @@
+{
+  "name": "TREASURY-BUILDER",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Moov ACH Engine",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "npm install -g newman && docker pull moov/ach:latest",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.profiles.linux": {
+          "MOOV-ACH-CONTAINER": {
+            "path": "bash",
+            "args": ["-c", "echo '=== MOOV-ACH-CONTAINER ===' && echo 'Starting Moov ACH Go container on port 8080...' && docker run --rm -p 8080:8080 --name moov-ach-container moov/ach:latest"],
+            "icon": "server-process"
+          },
+          "POSTMAN-RUNNER": {
+            "path": "bash",
+            "args": ["-c", "echo '=== POSTMAN-RUMNER ===' && echo 'Newman Postman CLI runner ready.' && echo 'Run: newman run <collection-url> --environment <env-url> --delay-request 2000' && bash"],
+            "icon": "play"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "MOOV-ACH-CONTAINER"
+      }
+    }
+  },
+  "remoteEnv":{
+    "STELLAR_NETWORK": "public",
+    "STELLAR_HORIZON_URL": "https://horizon.stellar.org",
+    "STELLAR_NETWORK_PASSPHRASE": "Public Global Stellar Network ; September 2015",
+    "MOOV_ACH_PORT": "8080",
+    "CLOB_COLD_ISSUER": "GCVDS3YYXQVFVVG4HSI@²@QMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3",
+    "SFETREAS_ISSUER": "GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP",
+    "EXECUTOR_PUBLIC": "GCHQWVJ56MQPWRSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCYIQOCEHML",
+    "CLEARING_ENGINE_URL": "https://fiduciary-clearing-engine.onrender.com",
+    "HOME_DOMAIN": "sfe-dynasty.github.io",
+    "DTI_PLACEHOLDER": "BGP5VXJME",
+    "FRAMEWORK": "US-SFE-PFIA-2025-T1A01",
+    "SETTLEMENT_TX": "65947e881619d0374c69a25481665f05f9e0d59e84cf79438961ed5bfefdd58b",
+    "POSTMAN_COLLECTION_ID": "58965602-35e8dc50-e91f-4217-ac4c-f6324399c9bb",
+    "POSTMAN_ENVIRONMENT_ID": "58965602-65597d28-8a69-4aea-9502-074dd65f0897"
+  }
+}

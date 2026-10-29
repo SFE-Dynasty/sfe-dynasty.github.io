@@ -170,10 +170,10 @@ footer .wrap{display:flex;flex-direction:column;align-items:center;gap:12px;text
         <div class="label">USD Coin &middot; Stable</div>
       </div>
       <div class="card price-card">
-        <div class="ticker">XCHF / USD</div>
-        <div class="price" id="xchfPrice"><span class="loading">&#8230;</span></div>
-        <div class="change" id="xchfChange"></div>
-        <div class="label">Swiss Gold Token &middot; CoinGecko</div>
+        <div class="ticker">XAUT / USD</div>
+        <div class="price" id="xautPrice"><span class="loading">&#8230;</span></div>
+        <div class="change" id="xautChange"></div>
+        <div class="label">Tether Gold &middot; CoinGecko</div>
       </div>
     </div>
   </div>
@@ -366,8 +366,8 @@ function connectBinanceWS(){
   ws.onerror=function(){ws.close()};
 }
 connectBinanceWS();
-async function fetchXCHF(){try{var r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=cryptofranc&vs_currencies=usd&include_24hr_change=true');var d=await r.json();if(d.cryptofranc){var p=d.cryptofranc.usd;var ch=d.cryptofranc.usd_24h_change||0;document.getElementById('xchfPrice').textContent='$'+p.toFixed(4);document.getElementById('xchfPrice').className='price '+(ch>=0?'up':'down');var cel=document.getElementById('xchfChange');cel.textContent=(ch>=0?'+':'')+ch.toFixed(2)+'% - Swiss Gold Peg';cel.className='change '+(ch>=0?'up':'down');}}catch(e){document.getElementById('xchfPrice').textContent='--';document.getElementById('xchfChange').textContent='CoinGecko unavailable';document.getElementById('xchfChange').className='change neutral';}}
-fetchXCHF();setInterval(fetchXCHF,30000);
+async function fetchXAUT(){try{var r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether-gold&vs_currencies=usd&include_24hr_change=true');var d=await r.json();if(d['tether-gold']){var p=d['tether-gold'].usd;var ch=d['tether-gold'].usd_24h_change||0;document.getElementById('xautPrice').textContent='$'+p.toFixed(4);document.getElementById('xautPrice').className='price '+(ch>=0?'up':'down');var cel=document.getElementById('xautChange');cel.textContent=(ch>=0?'+':'')+ch.toFixed(2)+'% - XAU Peg · 1 troy oz';cel.className='change '+(ch>=0?'up':'down');}}catch(e){document.getElementById('xautPrice').textContent='--';document.getElementById('xautChange').textContent='CoinGecko unavailable';document.getElementById('xautChange').className='change neutral';}}
+fetchXAUT();setInterval(fetchXAUT,30000);
 var TREASURY='GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
 var ISSUER='GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP';
 var USDC_ISSUER='GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';

@@ -6,190 +6,621 @@
   <title>SF Emerald Dynasty — DAO Treasury</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0e1a; color: #e2e8d0; min-height: 100vh; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #07090f; color: #c8d0e0; min-height: 100vh; }
     a { color: #f0a500; text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .header { background: linear-gradient(135deg, #0d1428 0%, #0a0e1a 100%); border-bottom: 2px solid #2ecc7122; padding: 24px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-    .header-left { display: flex; align-items: center; gap: 16px; }
-    .logo-emoji { font-size: 36px; }
-    .header-title { font-size: 22px; font-weight: 700; color: #f0f4ff; letter-spacing: 0.5px; }
-    .header-badge { background: #2ecc7118; border: 1px solid #2ecc7144; color: #2ecc71; font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 20px; white-space: nowrap; }
+
+    /* STATUS BAR */
+    .status-bar {
+      background: #050709;
+      border-bottom: 1px solid #1a2235;
+      padding: 6px 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      color: #607090;
+      font-family: 'Courier New', monospace;
+    }
+    .status-bar .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #2ecc71;
+      display: inline-block;
+      margin-right: 5px;
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+    .status-bar .live-label { color: #2ecc71; }
+    .status-bar .sep { color: #2a3550; }
+    .status-bar .ledger-val { color: #f0a500; }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #0a0f1e 0%, #0d1428 50%, #080c18 100%);
+      border-bottom: 2px solid #f0a50033;
+      padding: 22px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.6);
+    }
+    .header-left { display: flex; align-items: center; gap: 18px; }
+    .vault-icon { flex-shrink: 0; }
+    .header-title-block {}
+    .header-title { font-size: 22px; font-weight: 800; color: #f0f4ff; letter-spacing: 0.8px; text-transform: uppercase; }
+    .header-subtitle { font-size: 11px; color: #607090; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+    .header-badge {
+      background: #f0a50015;
+      border: 1px solid #f0a50044;
+      color: #f0a500;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 4px;
+      white-space: nowrap;
+      letter-spacing: 0.8px;
+    }
     .refresh-indicator { font-size: 11px; color: #607090; display: flex; align-items: center; gap: 6px; }
     .spinner { display: inline-block; animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 4px 1px rgba(46,204,113,0.6); opacity: 1; }
+      50% { box-shadow: 0 0 10px 3px rgba(46,204,113,0.9); opacity: 0.8; }
+    }
+    @keyframes pulse-glow-gold {
+      0%, 100% { box-shadow: 0 0 4px 1px rgba(240,165,0,0.6); opacity: 1; }
+      50% { box-shadow: 0 0 10px 3px rgba(240,165,0,0.9); opacity: 0.8; }
+    }
+    @keyframes pulse-glow-blue {
+      0%, 100% { box-shadow: 0 0 4px 1px rgba(39,119,255,0.6); opacity: 1; }
+      50% { box-shadow: 0 0 10px 3px rgba(39,119,255,0.9); opacity: 0.8; }
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .count-animate { animation: countUp 0.6s ease-out forwards; }
+
     .main { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
-    .section-title { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #f0a500; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .section-title::before { content: ''; display: block; width: 3px; height: 16px; background: #f0a500; border-radius: 2px; }
+    .section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: #f0a500; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before { content: ''; display: block; width: 3px; height: 14px; background: #f0a500; border-radius: 2px; }
     .section { margin-bottom: 40px; }
-    .card { background: #0d1224; border: 1px solid #1e2a40; border-radius: 12px; padding: 20px 24px; }
+    .card { background: #0b0f1e; border: 1px solid #1a2235; border-radius: 8px; padding: 20px 24px; }
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .ticker-card { background: #0d1224; border: 1px solid #1e2a40; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden; }
-    .ticker-card::after { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 0 2px 2px 0; }
+
+    /* TICKER CARDS */
+    .ticker-card {
+      background: #0b0f1e;
+      border: 1px solid #1a2235;
+      border-radius: 8px;
+      padding: 24px;
+      display: flex; flex-direction: column; gap: 8px;
+      position: relative; overflow: hidden;
+    }
+    .ticker-card::after {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%; border-radius: 0 2px 2px 0;
+    }
     .ticker-card.xlm::after { background: #2ecc71; }
     .ticker-card.sfetreas::after { background: #f0a500; }
     .ticker-card.usdc::after { background: #2777ff; }
-    .ticker-asset-code { font-size: 12px; font-weight: 600; letter-spacing: 1px; color: #607090; text-transform: uppercase; }
-    .ticker-balance { font-size: 28px; font-weight: 700; color: #f0f4ff; font-variant-numeric: tabular-nums; }
+    .ticker-asset-code { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: #607090; text-transform: uppercase; }
+    .ticker-balance { font-size: 28px; font-weight: 800; color: #f0f4ff; font-variant-numeric: tabular-nums; }
     .ticker-status { display: flex; align-items: center; gap: 6px; font-size: 11px; }
     .dot { width: 8px; height: 8px; border-radius: 50%; }
-    .dot-green { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
-    .dot-amber { background: #f0a500; box-shadow: 0 0 6px #f0a500; }
-    .dot-grey { background: #405060; }
-    .dot-red { background: #ff4444; box-shadow: 0 0 6px #ff4444; }
-    .ticker-last-updated { font-size: 10px; color: #405060; margin-top: 4px; }
-    .info-label { font-size: 11px; color: #607090; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
-    .info-value { font-size: 14px; color: #e2e8d0; font-weight: 500; }
-    .info-value.mono { font-family: 'Courier New', monospace; font-size: 12px; color: #60a5fa; }
-    .copy-btn { background: none; border: 1px solid #1e2a40; color: #607090; font-size: 10px; padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 8px; transition: all 0.2s; }
-    .copy-btn:hover { border-color: #2ecc71; color: #2ecc71; }
-    .pipeline-steps { display: flex; flex-direction: column; gap: 12px; }
-    .pipeline-step { display: flex; align-items: center; gap: 16px; background: #0d1224; border: 1px solid #1e2a40; border-radius: 8px; padding: 14px 18px; }
-    .pipeline-step-num { font-size: 11px; color: #405060; font-weight: 600; width: 20px; }
-    .pipeline-step-name { flex: 1; font-size: 13px; color: #e2e8d0; }
-    .status-badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
-    .badge-green { background: #2ecc7118; color: #2ecc71; border: 1px solid #2ecc7144; }
-    .badge-amber { background: #f0a50018; color: #f0a500; border: 1px solid #f0a50044; }
-    .badge-grey { background: #1e2a40; color: #405060; border: 1px solid #2a3650; }
-    .signers-table { width: 100%; border-collapse: collapse; }
-    .signers-table th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: #607090; padding: 10px 16px; border-bottom: 1px solid #1e2a40; }
-    .signers-table td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid #131a2c; vertical-align: middle; }
-    .signers-table tr:last-child td { border-bottom: none; }
-    .signer-key { font-family: 'Courier New', monospace; color: #60a5fa; font-size: 12px; }
-    .signer-role { color: #e2e8d0; }
-    .weight-badge { background: #2ecc7118; color: #2ecc71; border: 1px solid #2ecc7144; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
-    .footer { border-top: 1px solid #1e2a40; padding: 24px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #405060; }
-    .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
-    @media (max-width: 768px) {
+    .dot-green { background: #2ecc71; }
+    .dot-green.fresh { animation: pulse-glow 2s ease-in-out infinite; }
+    .dot-gold { background: #f0a500; }
+    .dot-gold.fresh { animation: pulse-glow-gold 2s ease-in-out infinite; }
+    .dot-blue { background: #2777ff; }
+    .dot-blue.fresh { animation: pulse-glow-blue 2s ease-in-out infinite; }
+    .dot-yellow { background: #f0a500; }
+    .dot-gray { background: #607090; }
+    .ticker-label { color: #607090; }
+    .ticker-sub { font-size: 11px; color: #3a4a60; margin-top: 4px; font-family: 'Courier New', monospace; }
+
+    /* PIPELINE */
+    .pipeline { display: flex; flex-direction: column; gap: 0; }
+    .pipeline-step {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 16px 20px;
+      border: 1px solid #1a2235;
+      border-radius: 0;
+      background: #0b0f1e;
+      position: relative;
+    }
+    .pipeline-step:first-child { border-radius: 8px 8px 0 0; }
+    .pipeline-step:last-child { border-radius: 0 0 8px 8px; }
+    .pipeline-step:not(:last-child) { border-bottom: none; }
+    .pipeline-step.complete { border-left: 3px solid #2ecc71; }
+    .pipeline-step.pending { border-left: 3px solid #f0a500; }
+    .pipeline-step.waiting { border-left: 3px solid #2a3550; }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+    .step-num.complete { background: #2ecc7122; color: #2ecc71; border: 1px solid #2ecc7144; }
+    .step-num.pending { background: #f0a50022; color: #f0a500; border: 1px solid #f0a50044; }
+    .step-num.waiting { background: #1a223522; color: #3a4a60; border: 1px solid #1a2235; }
+    .step-content { flex: 1; }
+    .step-title { font-size: 14px; font-weight: 600; color: #d0d8f0; }
+    .step-desc { font-size: 12px; color: #607090; margin-top: 3px; }
+    .step-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+      padding: 3px 8px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; margin-top: 3px;
+    }
+    .badge-complete { background: #2ecc7122; color: #2ecc71; border: 1px solid #2ecc7133; }
+    .badge-pending { background: #f0a50022; color: #f0a500; border: 1px solid #f0a50033; }
+    .badge-waiting { background: #1a223544; color: #3a4a60; border: 1px solid #1a2235; }
+
+    /* IDENTITY */
+    .identity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+    .identity-row { display: flex; flex-direction: column; gap: 4px; padding: 14px 0; border-bottom: 1px solid #111827; }
+    .identity-row:last-child { border-bottom: none; }
+    .identity-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #3a4a60; }
+    .identity-value { font-size: 13px; color: #c8d0e0; font-family: 'Courier New', monospace; word-break: break-all; }
+    .identity-value.highlight { color: #f0a500; }
+
+    /* SIGNERS */
+    .signer-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 0; border-bottom: 1px solid #111827;
+    }
+    .signer-row:last-child { border-bottom: none; }
+    .signer-weight {
+      width: 28px; height: 28px; border-radius: 4px;
+      background: #f0a50015; border: 1px solid #f0a50033;
+      color: #f0a500; font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .signer-info { flex: 1; min-width: 0; }
+    .signer-role { font-size: 12px; font-weight: 600; color: #d0d8f0; }
+    .signer-key { font-size: 11px; color: #3a4a60; font-family: 'Courier New', monospace; word-break: break-all; margin-top: 2px; }
+
+    /* CLOB */
+    .clob-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .clob-stat { padding: 14px 16px; background: #080c18; border: 1px solid #1a2235; border-radius: 6px; }
+    .clob-stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #3a4a60; margin-bottom: 6px; }
+    .clob-stat-value { font-size: 16px; font-weight: 700; color: #f0f4ff; font-family: 'Courier New', monospace; }
+    .clob-stat-value.gold { color: #f0a500; }
+    .clob-stat-value.green { color: #2ecc71; }
+
+    /* RECENT TRANSACTIONS */
+    .tx-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .tx-table th {
+      text-align: left; padding: 10px 12px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: #3a4a60;
+      border-bottom: 1px solid #1a2235;
+    }
+    .tx-table td { padding: 12px 12px; border-bottom: 1px solid #0f1525; color: #c8d0e0; vertical-align: middle; }
+    .tx-table tr:last-child td { border-bottom: none; }
+    .tx-table tr:hover td { background: #0d1228; }
+    .tx-type-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+      padding: 3px 7px; border-radius: 3px;
+    }
+    .tx-type-payment { background: #2777ff22; color: #2777ff; border: 1px solid #2777ff33; }
+    .tx-type-create { background: #2ecc7122; color: #2ecc71; border: 1px solid #2ecc7133; }
+    .tx-amount { font-family: 'Courier New', monospace; color: #f0f4ff; font-weight: 600; }
+    .tx-asset { color: #f0a500; font-weight: 600; }
+    .tx-addr { font-family: 'Courier New', monospace; color: #3a4a60; font-size: 11px; }
+    .tx-date { color: #3a4a60; font-size: 11px; }
+    .tx-empty { text-align: center; padding: 32px; color: #3a4a60; font-size: 13px; }
+    .tx-loading { text-align: center; padding: 24px; color: #607090; font-size: 12px; }
+
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid #1a2235;
+      padding: 24px 32px;
+      text-align: center;
+      font-size: 11px;
+      color: #3a4a60;
+      letter-spacing: 0.5px;
+    }
+    .footer a { color: #607090; }
+
+    @media (max-width: 600px) {
       .header { padding: 16px; }
-      .header-title { font-size: 16px; }
       .main { padding: 20px 16px; }
-      .card-grid { grid-template-columns: 1fr; }
+      .status-bar { padding: 6px 16px; gap: 10px; flex-wrap: wrap; }
       .ticker-balance { font-size: 22px; }
-      .signers-table th, .signers-table td { padding: 8px; font-size: 11px; }
-      .footer { padding: 16px; flex-direction: column; align-items: flex-start; }
+      .tx-table th:nth-child(4), .tx-table td:nth-child(4) { display: none; }
     }
   </style>
 </head>
 <body>
-  <header class="header">
-    <div class="header-left">
-      <span class="logo-emoji">&#128154;</span>
-      <span class="header-title">SF Emerald Dynasty &#8212; DAO Treasury</span>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span><span class="live-dot"></span><span class="live-label">LIVE</span></span>
+  <span class="sep">·</span>
+  <span>Stellar Mainnet</span>
+  <span class="sep">·</span>
+  <span>Last block: <span class="ledger-val" id="status-ledger">—</span></span>
+  <span class="sep">·</span>
+  <span id="status-time">—</span>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="vault-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="10" width="40" height="30" rx="3" stroke="#f0a500" stroke-width="2" fill="#f0a50010"/>
+        <rect x="8" y="6" width="32" height="6" rx="2" fill="#f0a500" opacity="0.7"/>
+        <circle cx="24" cy="25" r="7" stroke="#f0a500" stroke-width="2" fill="none"/>
+        <circle cx="24" cy="25" r="3" fill="#f0a500" opacity="0.6"/>
+        <line x1="24" y1="18" x2="24" y2="20" stroke="#f0a500" stroke-width="2" stroke-linecap="round"/>
+        <line x1="24" y1="30" x2="24" y2="32" stroke="#f0a500" stroke-width="2" stroke-linecap="round"/>
+        <line x1="17" y1="25" x2="19" y2="25" stroke="#f0a500" stroke-width="2" stroke-linecap="round"/>
+        <line x1="29" y1="25" x2="31" y2="25" stroke="#f0a500" stroke-width="2" stroke-linecap="round"/>
+        <rect x="20" y="37" width="8" height="5" rx="1" fill="#f0a500" opacity="0.5"/>
+        <line x1="16" y1="42" x2="32" y2="42" stroke="#f0a500" stroke-width="2" stroke-linecap="round"/>
+      </svg>
     </div>
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span class="header-badge">DAO Treasury &middot; Stellar Mainnet &middot; 2-of-3 Multisig</span>
-      <div class="refresh-indicator" id="refreshIndicator"></div>
+    <div class="header-title-block">
+      <div class="header-title">SF Emerald Dynasty</div>
+      <div class="header-subtitle">DAO Treasury · Stellar Mainnet · US-SFE-PFIA-2025-T1A01</div>
     </div>
-  </header>
-  <main class="main">
-    <section class="section">
-      <div class="section-title">Live Balance Tickers</div>
-      <div class="card-grid">
-        <div class="ticker-card xlm">
-          <div class="ticker-asset-code">XLM</div>
-          <div class="ticker-balance" id="xlmBalance">&#8212;</div>
-          <div class="ticker-status"><span class="dot dot-grey" id="xlmDot"></span><span id="xlmStatusText">Loading...</span></div>
-          <div class="ticker-last-updated" id="xlmUpdated"></div>
-        </div>
-        <div class="ticker-card sfetreas">
-          <div class="ticker-asset-code">SFETREAS</div>
-          <div class="ticker-balance" id="sfetreасBalance">&#8212;</div>
-          <div class="ticker-status"><span class="dot dot-grey" id="sfetreasDot"></span><span id="sfetreасStatusText">Loading...</span></div>
-          <div class="ticker-last-updated" id="sfetreасUpdated"></div>
-        </div>
-        <div class="ticker-card usdc">
-          <div class="ticker-asset-code">USDC</div>
-          <div class="ticker-balance" id="usdcBalance">&#8212;</div>
-          <div class="ticker-status"><span class="dot dot-grey" id="usdcDot"></span><span id="usdcStatusText">Loading...</span></div>
-          <div class="ticker-last-updated" id="usdcUpdated"></div>
-        </div>
-      </div>
-    </section>
-    <section class="section">
-      <div class="section-title">Wallet Identity</div>
-      <div class="card-grid">
-        <div class="card"><div class="info-label">Address</div><div class="info-value mono" style="word-break:break-all">GCATMWLZ7EU7EUWJ3LS6SBH<span style="color:#405060">...</span>DJYW <button class="copy-btn" onclick="copyText('GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW',this)">Copy</button></div></div>
-        <div class="card"><div class="info-label">Home Domain</div><div class="info-value">sfe-dynasty.github.io</div></div>
-        <div class="card"><div class="info-label">Multisig</div><div class="info-value">2-of-3 (DAO master + GCHQ + GBM7)</div></div>
-        <div class="card"><div class="info-label">Thresholds</div><div class="info-value">Low 1 / Med 2 / High 2</div></div>
-        <div class="card"><div class="info-label">Framework</div><div class="info-value mono">US-SFE-PFIA-2025-T1A01</div></div>
-      </div>
-    </section>
-    <section class="section">
-      <div class="section-title">Pipeline Status</div>
-      <div class="pipeline-steps">
-        <div class="pipeline-step"><span class="pipeline-step-num">01</span><span class="dot dot-green"></span><span class="pipeline-step-name">DTI Registration (ISO 24165)</span><span class="status-badge badge-green">Complete</span></div>
-        <div class="pipeline-step"><span class="pipeline-step-num">02</span><span class="dot dot-green"></span><span class="pipeline-step-name">Metadata Verification (GitHub Pages)</span><span class="status-badge badge-green">Complete</span></div>
-        <div class="pipeline-step"><span class="pipeline-step-num">03</span><span class="dot dot-green"></span><span class="pipeline-step-name">ISO 20022 pacs.008 Payload</span><span class="status-badge badge-green">Complete</span></div>
-        <div class="pipeline-step"><span class="pipeline-step-num">04</span><span class="dot dot-amber"></span><span class="pipeline-step-name">Moov ACH Transmission</span><span class="status-badge badge-amber">Pending</span></div>
-        <div class="pipeline-step"><span class="pipeline-step-num">05</span><span class="dot dot-grey"></span><span class="pipeline-step-name">SFTPGo Router</span><span class="status-badge badge-grey">Waiting</span></div>
-        <div class="pipeline-step"><span class="pipeline-step-num">06</span><span class="dot dot-grey"></span><span class="pipeline-step-name">MoneyGram SEP-6 Anchor Deposit</span><span class="status-badge badge-grey">Waiting</span></div>
-        <div class="pipeline-step"><span class="pipeline-step-num">07</span><span class="dot dot-grey"></span><span class="pipeline-step-name">Stellar Wallet Landing (USDC receipt)</span><span class="status-badge badge-grey">Waiting</span></div>
-      </div>
-    </section>
-    <section class="section">
-      <div class="section-title">CLOB Settlement</div>
-      <div class="card-grid">
-        <div class="card"><div class="info-label">Settlement Status</div><div style="display:flex;align-items:center;gap:8px;margin-top:4px"><span class="dot dot-green"></span><span class="info-value" style="color:#2ecc71;font-weight:700">VERIFIED</span></div><div style="font-size:12px;color:#a0b0c0;margin-top:6px">USD + SFE2025PTN + SFE2025PSCI payments sent to GCHQ</div></div>
-        <div class="card"><div class="info-label">Settlement TX</div><div class="info-value mono" style="word-break:break-all;margin-top:4px"><a href="https://stellar.expert/explorer/public/tx/65947e881619d0374c69a25481665f05f9e0d59e84cf79438961ed5bfefdd58b" target="_blank" style="color:#60a5fa">65947e88...fefdd58b</a></div></div>
-        <div class="card"><div class="info-label">Bid Amount</div><div class="info-value" style="margin-top:4px">250,000 SFETREAS @ 1:1 USDC</div></div>
-        <div class="card"><div class="info-label">Ledger</div><div class="info-value mono" style="margin-top:4px">65120726</div></div>
-      </div>
-    </section>
-    <section class="section">
-      <div class="section-title">Signers</div>
-      <div class="card">
-        <table class="signers-table">
-          <thead><tr><th>Signer Key</th><th>Role</th><th>Weight</th></tr></thead>
-          <tbody>
-            <tr><td><span class="signer-key">GBM7...C4QGP</span></td><td><span class="signer-role">MCP Server / Pipeline Processor</span></td><td><span class="weight-badge">1</span></td></tr>
-            <tr><td><span class="signer-key">GCAT...DJYW</span></td><td><span class="signer-role">DAO Treasury Master</span></td><td><span class="weight-badge">1</span></td></tr>
-            <tr><td><span class="signer-key">GCHQ...EHML</span></td><td><span class="signer-role">Fiduciary Executor / Co-signer</span></td><td><span class="weight-badge">1</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
-  <footer class="footer">
-    <span>&#128154; SF Emerald Dynasty &#8212; DAO Treasury Wallet &middot; US-SFE-PFIA-2025-T1A01</span>
-    <div class="footer-links">
-      <a href="https://stellar.expert/explorer/public/account/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW" target="_blank">stellar.expert &#8594;</a>
-      <a href="https://sfe-dynasty.github.io/">&#8592; SFE Home</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div class="header-badge">INSTITUTIONAL CUSTODY</div>
+    <div class="refresh-indicator" id="refresh-indicator">
+      <span id="refresh-spinner" style="display:none" class="spinner">↻</span>
+      <span id="refresh-text">Auto-refresh 30s</span>
     </div>
-  </footer>
-  <script>
-    var ACCOUNT = 'GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
-    var SFETREAS_ISSUER = 'GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP';
-    var USDC_ISSUER = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
-    function formatBalance(bal) { var num = parseFloat(bal); if (isNaN(num)) return bal; return num.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}); }
-    function setRefreshing(active) { var el = document.getElementById('refreshIndicator'); el.innerHTML = active ? '<span class=\"spinner\">&#8635;</span> Refreshing...' : ''; }
-    function fetchBalances() {
-      setRefreshing(true);
-      fetch('https://horizon.stellar.org/accounts/' + ACCOUNT)
-        .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
-        .then(function(data) {
-          var balances = data.balances || [];
-          var now = new Date().toLocaleTimeString();
-          var xlm = balances.find(function(b){return b.asset_type==='native';});
-          if (xlm) { document.getElementById('xlmBalance').textContent=formatBalance(xlm.balance); document.getElementById('xlmDot').className='dot dot-green'; document.getElementById('xlmStatusText').textContent='Live'; document.getElementById('xlmUpdated').textContent='Updated '+now; }
-          var sf = balances.find(function(b){return b.asset_code==='SFETREAS'&&b.asset_issuer===SFETREAS_ISSUER;});
-          var sfBal=document.getElementById('sfetreасBalance'); var sfDot=document.getElementById('sfetreasDot'); var sfStat=document.getElementById('sfetreасStatusText'); var sfUpd=document.getElementById('sfetreасUpdated');
-          if (sf) { if(sfBal)sfBal.textContent=formatBalance(sf.balance); var auth=sf.is_authorized===true; if(sfDot)sfDot.className=auth?'dot dot-green':'dot dot-amber'; if(sfStat)sfStat.textContent=auth?'Authorized':'Not Authorized'; if(sfUpd)sfUpd.textContent='Updated '+now; }
-          else { if(sfBal)sfBal.textContent='0.00'; if(sfDot)sfDot.className='dot dot-grey'; if(sfStat)sfStat.textContent='No Trustline'; if(sfUpd)sfUpd.textContent='Updated '+now; }
-          var usdc = balances.find(function(b){return b.asset_code==='USDC'&&b.asset_issuer===USDC_ISSUER;});
-          if (usdc) { document.getElementById('usdcBalance').textContent=formatBalance(usdc.balance); document.getElementById('usdcDot').className='dot dot-green'; document.getElementById('usdcStatusText').textContent='Live'; document.getElementById('usdcUpdated').textContent='Updated '+now; }
-          else { document.getElementById('usdcBalance').textContent='0.00'; document.getElementById('usdcDot').className='dot dot-grey'; document.getElementById('usdcStatusText').textContent='No Trustline'; document.getElementById('usdcUpdated').textContent='Updated '+now; }
-        })
-        .catch(function(err) {
-          console.error('Horizon error:',err);
-          ['xlm','usdc'].forEach(function(a){var d=document.getElementById(a+'Dot');var s=document.getElementById(a+'StatusText');if(d)d.className='dot dot-red';if(s)s.textContent='⚠ Offline';});
-          var sd=document.getElementById('sfetreasDot');var ss=document.getElementById('sfetreасStatusText');if(sd)sd.className='dot dot-red';if(ss)ss.textContent='⚠ Offline';
-        })
-        .finally(function(){setRefreshing(false);});
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- LIVE BALANCES -->
+  <div class="section">
+    <div class="section-title">Live Treasury Balances</div>
+    <div class="card-grid">
+      <div class="ticker-card xlm">
+        <div class="ticker-asset-code">XLM · Stellar Lumens</div>
+        <div class="ticker-balance" id="bal-xlm">—</div>
+        <div class="ticker-status">
+          <span class="dot dot-green" id="dot-xlm"></span>
+          <span class="ticker-label" id="lbl-xlm">Loading…</span>
+        </div>
+        <div class="ticker-sub">Native reserve &amp; gas</div>
+      </div>
+      <div class="ticker-card sfetreas">
+        <div class="ticker-asset-code">SFETREAS · Custom Asset</div>
+        <div class="ticker-balance" id="bal-sfetreas">—</div>
+        <div class="ticker-status">
+          <span class="dot dot-gold" id="dot-sfetreas"></span>
+          <span class="ticker-label" id="lbl-sfetreas">Loading…</span>
+        </div>
+        <div class="ticker-sub">Issuer: GCLFWV2R…SLKOP</div>
+      </div>
+      <div class="ticker-card usdc">
+        <div class="ticker-asset-code">USDC · Circle</div>
+        <div class="ticker-balance" id="bal-usdc">—</div>
+        <div class="ticker-status">
+          <span class="dot dot-blue" id="dot-usdc"></span>
+          <span class="ticker-label" id="lbl-usdc">Loading…</span>
+        </div>
+        <div class="ticker-sub">Awaiting MoneyGram anchor receipt</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT PIPELINE -->
+  <div class="section">
+    <div class="section-title">USD Deployment Pipeline</div>
+    <div class="pipeline">
+      <div class="pipeline-step complete">
+        <div class="step-num complete">1</div>
+        <div class="step-content">
+          <div class="step-title">DTI Token Received (ISO 24165)</div>
+          <div class="step-desc">Digital Token Identifier registered and confirmed on-chain</div>
+        </div>
+        <span class="step-badge badge-complete">COMPLETE</span>
+      </div>
+      <div class="pipeline-step complete">
+        <div class="step-num complete">2</div>
+        <div class="step-content">
+          <div class="step-title">ISO 20022 pacs.008 Payload</div>
+          <div class="step-desc">Credit transfer instruction formatted and submitted</div>
+        </div>
+        <span class="step-badge badge-complete">COMPLETE</span>
+      </div>
+      <div class="pipeline-step pending">
+        <div class="step-num pending">3</div>
+        <div class="step-content">
+          <div class="step-title">Moov ACH — USD value routed to MoneyGram</div>
+          <div class="step-desc">ACH file transmitted via SFTPGo; USD routing in progress</div>
+        </div>
+        <span class="step-badge badge-pending">PENDING</span>
+      </div>
+      <div class="pipeline-step waiting">
+        <div class="step-num waiting">4</div>
+        <div class="step-content">
+          <div class="step-title">SFTPGo Transmission Router</div>
+          <div class="step-desc">Secure file transfer gateway awaiting ACH confirmation</div>
+        </div>
+        <span class="step-badge badge-waiting">WAITING</span>
+      </div>
+      <div class="pipeline-step waiting">
+        <div class="step-num waiting">5</div>
+        <div class="step-content">
+          <div class="step-title">MoneyGram Anchor Handshake (SEP-6)</div>
+          <div class="step-desc">SEP-6 deposit flow initiated; anchor authentication pending</div>
+        </div>
+        <span class="step-badge badge-waiting">WAITING</span>
+      </div>
+      <div class="pipeline-step waiting">
+        <div class="step-num waiting">6</div>
+        <div class="step-content">
+          <div class="step-title">MoneyGram Stellar Anchor — Issues USDC on Stellar</div>
+          <div class="step-desc">Anchor mints USDC to DAO Treasury address upon USD receipt</div>
+        </div>
+        <span class="step-badge badge-waiting">WAITING</span>
+      </div>
+      <div class="pipeline-step waiting">
+        <div class="step-num waiting">7</div>
+        <div class="step-content">
+          <div class="step-title">DAO Treasury — USDC Receipt on Stellar</div>
+          <div class="step-desc">Final settlement: USDC credited to GCATMWLZ…DJYW</div>
+        </div>
+        <span class="step-badge badge-waiting">WAITING</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT TRANSACTIONS -->
+  <div class="section">
+    <div class="section-title">Recent Transactions</div>
+    <div class="card">
+      <div id="tx-container">
+        <div class="tx-loading">Loading transactions…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WALLET IDENTITY -->
+  <div class="section">
+    <div class="section-title">Wallet Identity</div>
+    <div class="card">
+      <div class="identity-row">
+        <div class="identity-label">DAO Treasury Address</div>
+        <div class="identity-value highlight">GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW</div>
+      </div>
+      <div class="identity-row">
+        <div class="identity-label">Home Domain</div>
+        <div class="identity-value"><a href="https://sfe-dynasty.github.io/.well-known/stellar.toml" target="_blank">sfe-dynasty.github.io</a></div>
+      </div>
+      <div class="identity-row">
+        <div class="identity-label">SFETREAS Issuer</div>
+        <div class="identity-value">GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP</div>
+      </div>
+      <div class="identity-row">
+        <div class="identity-label">USDC Issuer (Circle)</div>
+        <div class="identity-value">GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN</div>
+      </div>
+      <div class="identity-row">
+        <div class="identity-label">Regulatory Framework</div>
+        <div class="identity-value highlight">US-SFE-PFIA-2025-T1A01</div>
+      </div>
+      <div class="identity-row">
+        <div class="identity-label">Network</div>
+        <div class="identity-value">Stellar Mainnet (Public)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOB SETTLEMENT -->
+  <div class="section">
+    <div class="section-title">CLOB Settlement Record</div>
+    <div class="card">
+      <div class="clob-grid">
+        <div class="clob-stat">
+          <div class="clob-stat-label">Settlement TX</div>
+          <div class="clob-stat-value gold" style="font-size:11px;word-break:break-all;">
+            <a href="https://stellar.expert/explorer/public/tx/65947e881619d0374c69a25481665f05f9e0d59e84cf79438961ed5bfefdd58b" target="_blank">65947e88…dd58b</a>
+          </div>
+        </div>
+        <div class="clob-stat">
+          <div class="clob-stat-label">Settlement Ledger</div>
+          <div class="clob-stat-value green">65,120,726</div>
+        </div>
+        <div class="clob-stat">
+          <div class="clob-stat-label">Status</div>
+          <div class="clob-stat-value green">SETTLED</div>
+        </div>
+        <div class="clob-stat">
+          <div class="clob-stat-label">Framework</div>
+          <div class="clob-stat-value gold" style="font-size:12px;">US-SFE-PFIA-2025-T1A01</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTHORIZED SIGNERS -->
+  <div class="section">
+    <div class="section-title">Authorized Signers</div>
+    <div class="card">
+      <div class="signer-row">
+        <div class="signer-weight">1</div>
+        <div class="signer-info">
+          <div class="signer-role">MCP Server / Pipeline Processor</div>
+          <div class="signer-key">GBM7FIWAJHOADVDI7PLWNCK3T5ZHJXX6P7LCVNX6ZAMY5R3XNI7C4QGP</div>
+        </div>
+      </div>
+      <div class="signer-row">
+        <div class="signer-weight">1</div>
+        <div class="signer-info">
+          <div class="signer-role">DAO Treasury Master</div>
+          <div class="signer-key">GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW</div>
+        </div>
+      </div>
+      <div class="signer-row">
+        <div class="signer-weight">1</div>
+        <div class="signer-info">
+          <div class="signer-role">Fiduciary Executor / Co-signer</div>
+          <div class="signer-key">GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  SF Emerald Dynasty · DAO Treasury · Stellar Mainnet ·
+  <a href="https://sfe-dynasty.github.io/.well-known/stellar.toml" target="_blank">stellar.toml</a> ·
+  <a href="https://stellar.expert/explorer/public/account/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW" target="_blank">Explorer</a>
+</div>
+
+<script>
+const TREASURY = 'GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
+const SFETREAS_ISSUER = 'GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP';
+const USDC_ISSUER = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
+
+function fmt(n) {
+  const num = parseFloat(n);
+  if (isNaN(num)) return '—';
+  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 7 });
+}
+
+function truncAddr(addr) {
+  if (!addr || addr.length < 12) return addr;
+  return addr.slice(0, 6) + '…' + addr.slice(-4);
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' +
+    d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+function animateCount(el, targetStr) {
+  const target = parseFloat(targetStr);
+  if (isNaN(target)) { el.textContent = targetStr; return; }
+  const duration = 800;
+  const start = performance.now();
+  const startVal = 0;
+  function step(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = startVal + (target - startVal) * eased;
+    el.textContent = current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 7 });
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = fmt(targetStr);
+  }
+  el.classList.add('count-animate');
+  requestAnimationFrame(step);
+}
+
+async function fetchLedger() {
+  try {
+    const r = await fetch('https://horizon.stellar.org/fee_stats');
+    const d = await r.json();
+    const ledger = d.last_ledger;
+    document.getElementById('status-ledger').textContent = parseInt(ledger).toLocaleString();
+    document.getElementById('status-time').textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  } catch(e) {}
+}
+
+async function fetchBalances() {
+  const spinner = document.getElementById('refresh-spinner');
+  const txt = document.getElementById('refresh-text');
+  spinner.style.display = 'inline-block';
+  txt.textContent = 'Refreshing…';
+  try {
+    const r = await fetch('https://horizon.stellar.org/accounts/' + TREASURY);
+    const d = await r.json();
+    const balances = d.balances || [];
+    let xlm = '0', sfetreas = '0', usdc = '0';
+    for (const b of balances) {
+      if (b.asset_type === 'native') xlm = b.balance;
+      else if (b.asset_code === 'SFETREAS' && b.asset_issuer === SFETREAS_ISSUER) sfetreas = b.balance;
+      else if (b.asset_code === 'USDC' && b.asset_issuer === USDC_ISSUER) usdc = b.balance;
     }
-    function copyText(text,btn){navigator.clipboard.writeText(text).then(function(){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy';},1500);}).catch(function(){btn.textContent='Error';});}
-    fetchBalances();
-    setInterval(fetchBalances,30000);
-  </script>
+    animateCount(document.getElementById('bal-xlm'), xlm);
+    animateCount(document.getElementById('bal-sfetreas'), sfetreas);
+    animateCount(document.getElementById('bal-usdc'), usdc);
+    document.getElementById('dot-xlm').classList.add('fresh');
+    document.getElementById('dot-sfetreas').classList.add('fresh');
+    document.getElementById('dot-usdc').classList.add('fresh');
+    document.getElementById('lbl-xlm').textContent = 'Live · Stellar Mainnet';
+    document.getElementById('lbl-sfetreas').textContent = 'Live · Stellar Mainnet';
+    document.getElementById('lbl-usdc').textContent = parseFloat(usdc) > 0 ? 'Live · Received' : 'Live · Awaiting receipt';
+    setTimeout(() => {
+      document.getElementById('dot-xlm').classList.remove('fresh');
+      document.getElementById('dot-sfetreas').classList.remove('fresh');
+      document.getElementById('dot-usdc').classList.remove('fresh');
+    }, 5000);
+  } catch(e) {
+    document.getElementById('lbl-xlm').textContent = 'Error loading';
+    document.getElementById('lbl-sfetreas').textContent = 'Error loading';
+    document.getElementById('lbl-usdc').textContent = 'Error loading';
+  }
+  spinner.style.display = 'none';
+  txt.textContent = 'Auto-refresh 30s';
+}
+
+async function fetchTransactions() {
+  const container = document.getElementById('tx-container');
+  try {
+    const r = await fetch('https://horizon.stellar.org/accounts/' + TREASURY + '/payments?order=desc&limit=5');
+    const d = await r.json();
+    const records = (d._embedded && d._embedded.records) ? d._embedded.records : [];
+    if (records.length === 0) {
+      container.innerHTML = '<div class="tx-empty">Awaiting first USDC receipt from MoneyGram anchor</div>';
+      return;
+    }
+    let rows = '';
+    for (const tx of records) {
+      const type = tx.type || 'payment';
+      const typeLabel = type === 'create_account' ? 'Create' : 'Payment';
+      const typeClass = type === 'create_account' ? 'tx-type-create' : 'tx-type-payment';
+      let asset = '—', amount = '—', counterparty = '—';
+      if (type === 'create_account') {
+        asset = 'XLM'; amount = tx.starting_balance || '—';
+        counterparty = tx.funder || '—';
+      } else {
+        asset = tx.asset_type === 'native' ? 'XLM' : (tx.asset_code || '?');
+        amount = tx.amount || '—';
+        const isIncoming = tx.to === TREASURY;
+        counterparty = isIncoming ? (tx.from || '—') : (tx.to || '—');
+      }
+      const date = fmtDate(tx.created_at);
+      rows += '<tr>' +
+        '<td><span class="tx-type-badge ' + typeClass + '">' + typeLabel + '</span></td>' +
+        '<td class="tx-asset">' + asset + '</td>' +
+        '<td class="tx-amount">' + parseFloat(amount).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:7}) + '</td>' +
+        '<td class="tx-addr">' + truncAddr(counterparty) + '</td>' +
+        '<td class="tx-date">' + date + '</td>' +
+        '</tr>';
+    }
+    container.innerHTML = '<table class="tx-table"><thead><tr><th>Type</th><th>Asset</th><th>Amount</th><th>From / To</th><th>Date</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  } catch(e) {
+    container.innerHTML = '<div class="tx-empty">Unable to load transactions</div>';
+  }
+}
+
+async function refresh() {
+  await Promise.all([fetchLedger(), fetchBalances(), fetchTransactions()]);
+}
+
+refresh();
+setInterval(refresh, 30000);
+</script>
 </body>
 </html>

@@ -1,0 +1,7 @@
+name = "dao-treasury-ai"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+account_id = "d08c6c801b775d969ba86829ddeccaec"
+
+[ai]
+binding = "AI"

@@ -5,144 +5,127 @@
 <title>SF Emerald Dynasty — DAO Treasury</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;min-width:320px;overflow-x:hidden}
+body{background:#0a0a0a;color:#e0e0e0;font-family:monospace;min-height:100vh}
 canvas#particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
-nav{position:sticky;top:0;z-index:10;background:#111;border-bottom:1px solid #d4af37;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.nav-title{color:#d4af37;font-size:1.1em;font-weight:bold;letter-spacing:1px}
-.nav-links{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.nav-links a{color:#e0e0e0;text-decoration:none;font-size:.8em;border:1px solid #333;padding:3px 8px;border-radius:3px;transition:border-color .2s}
-.nav-links a:hover{border-color:#d4af37;color:#d4af37}
-#utc-clock{color:#00bcd4;font-size:.85em;font-weight:bold}
-.status-bar{background:#111;border-bottom:1px solid #222;padding:6px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;z-index:9;position:relative}
-.status-bar span{font-size:.8em}
-.badge{padding:2px 8px;border-radius:3px;font-size:.75em;font-weight:bold}
-.badge-green{background:#00ff8822;color:#00ff88;border:1px solid #00ff88}
-.badge-gold{background:#d4af3722;color:#d4af37;border:1px solid #d4af37}
-main{position:relative;z-index:1;padding:20px;max-width:1400px;margin:0 auto}
-.section-title{color:#d4af37;font-size:.9em;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;border-bottom:1px solid #222;padding-bottom:6px}
-.card{background:#111;border:1px solid #222;border-radius:6px;padding:16px;margin-bottom:20px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
-.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
-@media(max-width:900px){.grid-3{grid-template-columns:1fr 1fr}.grid-5{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.grid-3{grid-template-columns:1fr}.grid-5{grid-template-columns:1fr}}
-.price-card{background:#111;border:1px solid #222;border-radius:6px;padding:16px;text-align:center}
-.price-label{font-size:.75em;color:#888;margin-bottom:6px;letter-spacing:1px}
-.price-value{font-size:1.6em;font-weight:bold;color:#d4af37}
-.price-sub{font-size:.7em;color:#555;margin-top:4px}
-.ticker-card{background:#111;border:1px solid #222;border-radius:6px;padding:12px 16px;display:flex;align-items:center;gap:12px}
-.ticker-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.ticker-label{font-size:.8em;color:#888;letter-spacing:1px}
-.ticker-value{font-size:1.2em;font-weight:bold;margin-top:2px}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:#0d0d0d;border-bottom:1px solid #d4af37;padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
+nav .brand{color:#d4af37;font-size:14px;font-weight:bold;letter-spacing:1px}
+nav .nav-links{display:flex;gap:16px;align-items:center}
+nav .nav-links a{color:#aaa;text-decoration:none;font-size:12px}
+nav .nav-links a:hover{color:#d4af37}
+#utcClock{color:#d4af37;font-size:12px}
+.status-bar{position:fixed;top:49px;left:0;right:0;z-index:99;background:#0d0d0d;border-bottom:1px solid #1a1a1a;padding:6px 24px;display:flex;gap:16px;align-items:center;font-size:11px}
+.badge{padding:2px 8px;border-radius:3px;font-size:10px;font-weight:bold}
+.badge-green{background:#00ff8822;color:#00ff88;border:1px solid #00ff8844}
+.badge-gold{background:#d4af3722;color:#d4af37;border:1px solid #d4af3744}
+.badge-blue{background:#00bcd422;color:#00bcd4;border:1px solid #00bcd444}
+.badge-settled{background:#00ff8833;color:#00ff88;border:1px solid #00ff88;padding:2px 10px;border-radius:3px;font-size:11px;font-weight:bold}
+.main{position:relative;z-index:1;padding-top:80px;padding:80px 24px 40px}
+.section{margin-bottom:28px}
+.section-title{color:#d4af37;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;border-bottom:1px solid #1a1a1a;padding-bottom:6px}
+.cards-row{display:flex;gap:16px;flex-wrap:wrap}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:16px;flex:1;min-width:180px}
+.card-label{font-size:10px;color:#888;margin-bottom:6px;letter-spacing:1px}
+.card-value{font-size:22px;font-weight:bold;color:#e0e0e0}
+.card-sub{font-size:10px;color:#555;margin-top:4px}
+.tickers{display:flex;flex-direction:column;gap:8px}
+.ticker{background:#111;border:1px solid #222;border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:background 0.3s}
 @keyframes tickerFlash{0%{background:#d4af3755}100%{background:transparent}}
 .ticker-flash{animation:tickerFlash 1s ease-out}
-.pipeline{display:flex;align-items:center;gap:0;overflow-x:auto;padding:16px 0;margin-bottom:20px}
-.pipe-step{background:#111;border:1px solid #222;border-radius:6px;padding:10px 14px;text-align:center;min-width:110px;flex-shrink:0;position:relative;cursor:pointer}
-.pipe-step:hover .pipe-tooltip{display:block}
-.pipe-arrow{color:#444;font-size:1.2em;padding:0 4px;flex-shrink:0}
-.pipe-status{font-size:.65em;font-weight:bold;margin-top:4px;padding:2px 6px;border-radius:3px;display:inline-block}
-.status-complete{background:#00ff8822;color:#00ff88;border:1px solid #00ff88}
-.status-pending{background:#ffcc0022;color:#ffcc00;border:1px solid #ffcc00}
-.status-waiting{background:#44444422;color:#888;border:1px solid #444}
-.pipe-tooltip{display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid #d4af37;border-radius:4px;padding:8px;font-size:.7em;white-space:nowrap;z-index:100;color:#e0e0e0}
-.wallet-addr{font-family:'Courier New',monospace;font-size:.75em;word-break:break-all;color:#00bcd4}
-.blurred{filter:blur(5px);user-select:none}
-.btn{background:transparent;border:1px solid #d4af37;color:#d4af37;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:.75em;font-family:'Courier New',monospace;transition:background .2s}
-.btn:hover{background:#d4af3722}
-.btn-sm{padding:2px 7px;font-size:.7em}
-.signer-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #1a1a1a;flex-wrap:wrap}
-.signer-addr{font-size:.72em;font-family:'Courier New',monospace;color:#00bcd4;flex:1;min-width:200px}
-.weight-badge{background:#d4af3722;color:#d4af37;border:1px solid #d4af37;padding:2px 8px;border-radius:3px;font-size:.7em}
-.clob-card{background:#111;border:1px solid #00ff88;border-radius:6px;padding:16px;margin-bottom:20px}
-.clob-tx{font-size:.7em;font-family:'Courier New',monospace;color:#00bcd4;word-break:break-all;margin:8px 0}
-.settled-badge{background:#00ff8822;color:#00ff88;border:1px solid #00ff88;padding:3px 10px;border-radius:3px;font-size:.75em;font-weight:bold}
-table{width:100%;border-collapse:collapse;font-size:.78em}
-th{color:#888;text-align:left;padding:8px;border-bottom:1px solid #222;font-weight:normal;letter-spacing:1px}
-td{padding:8px;border-bottom:1px solid #1a1a1a;color:#e0e0e0}
-tr:hover td{background:#ffffff08}
-footer{background:#111;border-top:1px solid #222;padding:16px 20px;text-align:center;font-size:.75em;color:#555;position:relative;z-index:1}
-footer a{color:#d4af37;text-decoration:none;margin:0 8px}
-footer a:hover{text-decoration:underline}
-
-/* AGENT COMMS */
-#agent-comms-toggle{position:fixed;bottom:24px;right:24px;z-index:9999;background:#111;border:2px solid #d4af37;color:#d4af37;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:'Courier New',monospace;font-size:.85em;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot-green{background:#00ff88}
+.dot-gold{background:#d4af37}
+.dot-blue{background:#00bcd4}
+.dot-purple{background:#9c27b0}
+.dot-teal{background:#009688}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.dot-pulse{animation:pulse 1.5s infinite}
+.ticker-name{font-size:12px;color:#888;width:120px}
+.ticker-bal{font-size:16px;font-weight:bold;color:#e0e0e0;flex:1}
+.ticker-usd{font-size:11px;color:#555}
+.pipeline{display:flex;gap:0;flex-wrap:wrap;margin-top:8px}
+.pipe-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:100px;position:relative}
+.pipe-step:not(:last-child)::after{content:'→';position:absolute;right:-10px;top:18px;color:#333;font-size:16px;z-index:2}
+.pipe-box{background:#111;border:1px solid #222;border-radius:8px;padding:10px 8px;text-align:center;width:100%;font-size:10px}
+.pipe-name{color:#e0e0e0;font-size:11px;margin-bottom:4px}
+.status-complete{color:#00ff88;font-size:10px;font-weight:bold}
+.status-pending{color:#ffd600;font-size:10px;font-weight:bold}
+.status-waiting{color:#555;font-size:10px;font-weight:bold}
+.identity-grid{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;font-size:12px}
+.identity-label{color:#888}
+.identity-value{color:#e0e0e0;word-break:break-all}
+.reveal-btn,.copy-btn{background:none;border:1px solid #333;color:#888;font-size:10px;padding:2px 8px;border-radius:3px;cursor:pointer;margin-left:8px;font-family:monospace}
+.reveal-btn:hover,.copy-btn:hover{border-color:#d4af37;color:#d4af37}
+.signers-list{display:flex;flex-direction:column;gap:8px}
+.signer-row{background:#111;border:1px solid #222;border-radius:6px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:11px}
+.signer-addr{color:#00bcd4;word-break:break-all}
+.signer-weight{color:#d4af37;font-size:12px;font-weight:bold}
+.clob-card{background:#111;border:1px solid #222;border-radius:8px;padding:16px}
+.clob-tx{font-size:11px;color:#00bcd4;word-break:break-all;margin-bottom:10px}
+.clob-meta{display:flex;gap:20px;font-size:11px;color:#888;flex-wrap:wrap}
+.clob-meta span{color:#e0e0e0}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{color:#888;text-align:left;padding:8px 10px;border-bottom:1px solid #1a1a1a;font-size:10px;letter-spacing:1px}
+td{padding:8px 10px;border-bottom:1px solid #111;color:#e0e0e0}
+tr:hover td{background:#111}
+footer{position:relative;z-index:1;background:#0d0d0d;border-top:1px solid #1a1a1a;padding:20px 24px;text-align:center;font-size:11px;color:#555}
+footer a{color:#888;text-decoration:none;margin:0 8px}
+footer a:hover{color:#d4af37}
+/* Agent Comms Panel */
+#agentCommsToggle{position:fixed;bottom:24px;right:24px;z-index:9999;background:#111;border:1px solid #d4af37;color:#d4af37;font-family:monospace;font-size:12px;padding:8px 14px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px}
 .comms-dot{width:8px;height:8px;border-radius:50%;background:#00ff88;animation:pulse 1.5s infinite}
-#agent-comms-panel{position:fixed;bottom:70px;right:24px;width:min(700px,95vw);height:62vh;background:#0a0a0a;border:1px solid #d4af37;border-radius:8px;z-index:9999;display:none;flex-direction:column;overflow:hidden}
-#agent-comms-panel.open{display:flex}
-.comms-tabs{display:flex;background:#111;border-bottom:1px solid #222;overflow-x:auto;flex-shrink:0}
-.comms-tab{padding:8px 14px;cursor:pointer;font-size:.75em;color:#888;border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s}
+#agentCommsPanel{position:fixed;bottom:64px;right:24px;z-index:9998;width:560px;max-height:62vh;background:#0d0d0d;border:1px solid #d4af37;border-radius:10px;display:none;flex-direction:column;overflow:hidden}
+#agentCommsPanel.open{display:flex}
+.comms-tabs{display:flex;overflow-x:auto;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-shrink:0}
+.comms-tab{padding:8px 12px;font-size:11px;color:#888;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;font-family:monospace}
 .comms-tab.active{color:#d4af37;border-bottom-color:#d4af37}
-.comms-tab:hover{color:#e0e0e0}
-.comms-content{flex:1;overflow-y:auto;padding:12px;display:none}
-.comms-content.active{display:block}
-.comms-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
-.comms-input{background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:6px 10px;border-radius:4px;font-family:'Courier New',monospace;font-size:.8em;flex:1}
+.comms-body{flex:1;overflow-y:auto;padding:12px;display:none}
+.comms-body.active{display:block}
+.comms-input{width:100%;background:#111;border:1px solid #333;color:#e0e0e0;font-family:monospace;font-size:11px;padding:6px 8px;border-radius:4px;margin-bottom:6px}
 .comms-input:focus{outline:none;border-color:#d4af37}
-.comms-select{background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:6px;border-radius:4px;font-family:'Courier New',monospace;font-size:.8em}
-.comms-textarea{background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:8px;border-radius:4px;font-family:'Courier New',monospace;font-size:.78em;width:100%;resize:vertical}
-.comms-response{background:#050505;border:1px solid #222;border-radius:4px;padding:10px;margin-top:8px;font-size:.75em;max-height:200px;overflow-y:auto}
-.status-badge{padding:2px 8px;border-radius:3px;font-size:.75em;font-weight:bold;margin-right:6px}
-.s2xx{background:#00ff8822;color:#00ff88;border:1px solid #00ff88}
-.s4xx{background:#ff444422;color:#ff4444;border:1px solid #ff4444}
-.s5xx{background:#ff444422;color:#ff4444;border:1px solid #ff4444}
-.ws-log{background:#050505;border:1px solid #222;border-radius:4px;padding:8px;height:180px;overflow-y:auto;font-size:.75em;margin-top:8px}
-.ws-sent{color:#d4af37}
-.ws-recv{color:#00ff88}
-.ws-err{color:#ff4444}
-.ws-info{color:#888}
-.env-table{width:100%;border-collapse:collapse;font-size:.78em}
-.env-table td{padding:4px}
-.env-table input{background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:4px 8px;border-radius:3px;font-family:'Courier New',monospace;font-size:.78em;width:100%}
-.stellar-list{list-style:none;padding:0}
-.stellar-list li{padding:8px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.stellar-list li:hover{background:#ffffff05}
-.stellar-name{font-size:.8em;color:#e0e0e0}
-.stellar-url{font-size:.68em;color:#555;word-break:break-all}
-.sub-tabs{display:flex;gap:0;margin-bottom:8px}
-.sub-tab{padding:5px 12px;cursor:pointer;font-size:.75em;color:#888;border:1px solid #333;border-radius:3px 3px 0 0;margin-right:2px}
-.sub-tab.active{color:#d4af37;border-color:#d4af37;background:#d4af3711}
-.headers-table{width:100%;border-collapse:collapse;font-size:.78em;margin-bottom:8px}
-.headers-table td{padding:3px}
-.headers-table input{background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:4px 8px;border-radius:3px;font-family:'Courier New',monospace;font-size:.78em;width:100%}
-.history-select{background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:5px;border-radius:4px;font-family:'Courier New',monospace;font-size:.75em;width:100%;margin-bottom:8px}
-.json-key{color:#e0e0e0}
-.json-str{color:#d4af37}
-.json-num{color:#00bcd4}
-.json-bool{color:orange}
-.json-null{color:#ff4444}
-.pretty-json{white-space:pre-wrap;word-break:break-all;font-size:.75em;line-height:1.5}
-.copy-btn{background:transparent;border:1px solid #444;color:#888;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:.7em;font-family:'Courier New',monospace}
-.copy-btn:hover{border-color:#d4af37;color:#d4af37}
-.sftp-log{background:#050505;border:1px solid #222;border-radius:4px;padding:8px;height:120px;overflow-y:auto;font-size:.75em;margin-top:8px;color:#00ff88}
-.py-output{background:#0a0a0a;border:1px solid #222;border-radius:4px;padding:8px;height:150px;overflow-y:auto;font-size:.75em;color:#00ff88;font-family:'Courier New',monospace;margin-top:8px}
-.progress-bar-wrap{background:#222;border-radius:4px;height:8px;margin:8px 0;overflow:hidden}
-.progress-bar{background:#d4af37;height:100%;width:0%;transition:width .3s}
-.sse-log{background:#050505;border:1px solid #222;border-radius:4px;padding:8px;height:180px;overflow-y:auto;font-size:.75em;margin-top:8px}
-.sse-event{margin-bottom:6px;padding:4px;border-bottom:1px solid #1a1a1a}
-.sse-type{background:#00bcd422;color:#00bcd4;border:1px solid #00bcd4;padding:1px 6px;border-radius:3px;font-size:.7em;margin-right:6px}
-
-/* AI AGENT */
-#ai-agent-btn{position:fixed;bottom:24px;left:24px;z-index:9998;width:52px;height:52px;border-radius:50%;background:#111;border:2px solid #d4af37;color:#d4af37;font-size:1.4em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s}
-#ai-agent-btn:hover{transform:scale(1.1)}
-#ai-agent-tooltip{position:absolute;bottom:60px;left:0;background:#111;border:1px solid #d4af37;color:#d4af37;padding:4px 10px;border-radius:4px;font-size:.75em;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}
-#ai-agent-btn:hover #ai-agent-tooltip{opacity:1}
-#ai-panel{position:fixed;bottom:90px;left:24px;width:400px;height:500px;background:#0a0a0a;border:1px solid #d4af37;border-radius:8px;z-index:9998;display:none;flex-direction:column;overflow:hidden}
-#ai-panel.open{display:flex}
-.ai-header{background:#111;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;flex-shrink:0}
-.ai-title{color:#d4af37;font-size:.9em;font-weight:bold}
-.ai-close{background:none;border:none;color:#888;cursor:pointer;font-size:1.1em}
-.ai-close:hover{color:#ff4444}
+.comms-btn{background:#111;border:1px solid #d4af37;color:#d4af37;font-family:monospace;font-size:11px;padding:5px 12px;border-radius:4px;cursor:pointer;margin-right:6px;margin-bottom:6px}
+.comms-btn:hover{background:#d4af3722}
+.comms-btn.red{border-color:#ff4444;color:#ff4444}
+.comms-btn.green{border-color:#00ff88;color:#00ff88}
+.comms-btn.blue{border-color:#00bcd4;color:#00bcd4}
+.response-pane{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:4px;padding:8px;font-size:10px;min-height:60px;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-top:6px;color:#00ff88}
+.log-pane{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:4px;padding:8px;font-size:10px;min-height:80px;max-height:180px;overflow-y:auto;margin-top:6px}
+.log-sent{color:#d4af37}
+.log-recv{color:#00ff88}
+.log-err{color:#ff4444}
+.log-info{color:#00bcd4}
+.status-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:bold;margin-left:8px}
+.status-2xx{background:#00ff8822;color:#00ff88;border:1px solid #00ff8844}
+.status-4xx{background:#ff444422;color:#ff4444;border:1px solid #ff444444}
+.status-5xx{background:#ff444422;color:#ff4444;border:1px solid #ff444444}
+.env-table{width:100%;font-size:11px;border-collapse:collapse}
+.env-table td{padding:4px 6px;border-bottom:1px solid #1a1a1a}
+.env-key{color:#d4af37;width:160px}
+.env-val-input{background:#111;border:1px solid #222;color:#e0e0e0;font-family:monospace;font-size:11px;padding:3px 6px;border-radius:3px;width:100%}
+.env-val-input:focus{outline:none;border-color:#d4af37}
+select.comms-input{cursor:pointer}
+label.comms-label{font-size:10px;color:#888;display:block;margin-bottom:3px}
+.xml-area{width:100%;background:#0a0a0a;border:1px solid #1a1a1a;color:#00ff88;font-family:monospace;font-size:10px;padding:8px;border-radius:4px;min-height:120px;resize:vertical}
+/* AI Agent */
+#aiAgentBtn{position:fixed;bottom:24px;left:24px;z-index:10000;background:#111;border:1px solid #d4af37;color:#d4af37;font-family:monospace;font-size:13px;padding:10px 16px;border-radius:8px;cursor:pointer}
+#aiAgentPanel{position:fixed;bottom:72px;left:24px;z-index:10000;width:400px;height:520px;background:#0d0d0d;border:1px solid #d4af37;border-radius:10px;display:none;flex-direction:column;overflow:hidden}
+#aiAgentPanel.open{display:flex}
+.ai-header{background:#0a0a0a;border-bottom:1px solid #1a1a1a;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#d4af37;flex-shrink:0}
+.ai-mode-badge{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:bold}
+.ai-mode-webgpu{background:#00bcd422;color:#00bcd4;border:1px solid #00bcd444}
+.ai-mode-wasm{background:#ff980022;color:#ff9800;border:1px solid #ff980044}
 .ai-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
-.ai-msg{padding:8px 12px;border-radius:6px;font-size:.8em;line-height:1.5;max-width:90%}
-.ai-msg.user{background:#d4af3722;border:1px solid #d4af3744;align-self:flex-end;color:#e0e0e0}
-.ai-msg.assistant{background:#00bcd422;border:1px solid #00bcd444;align-self:flex-start;color:#e0e0e0}
-.ai-msg.system{background:#ffffff0a;border:1px solid #333;align-self:center;color:#888;font-size:.75em;text-align:center}
-.ai-input-row{display:flex;gap:8px;padding:10px;border-top:1px solid #222;flex-shrink:0}
-.ai-input{flex:1;background:#111;border:1px solid #333;color:#e0e0e0;padding:8px;border-radius:4px;font-family:'Courier New',monospace;font-size:.8em;resize:none}
+.ai-msg{padding:8px 10px;border-radius:6px;font-size:12px;line-height:1.5;max-width:90%;white-space:pre-wrap;word-break:break-word}
+.ai-msg.user{background:#d4af3722;color:#e0e0e0;align-self:flex-end;border:1px solid #d4af3744}
+.ai-msg.assistant{background:#111;color:#e0e0e0;align-self:flex-start;border:1px solid #222}
+.ai-msg.system{background:#00bcd422;color:#00bcd4;align-self:center;font-size:10px;border:1px solid #00bcd444}
+.ai-progress{padding:8px 12px;font-size:10px;color:#888;flex-shrink:0}
+.ai-progress-bar{height:4px;background:#1a1a1a;border-radius:2px;margin-top:4px;overflow:hidden}
+.ai-progress-fill{height:100%;background:#d4af37;border-radius:2px;transition:width 0.3s;width:0%}
+.ai-input-row{display:flex;gap:8px;padding:10px;border-top:1px solid #1a1a1a;flex-shrink:0}
+.ai-input{flex:1;background:#111;border:1px solid #333;color:#e0e0e0;font-family:monospace;font-size:12px;padding:8px;border-radius:4px;resize:none;height:40px}
 .ai-input:focus{outline:none;border-color:#d4af37}
-.ai-send{background:#d4af37;border:none;color:#0a0a0a;padding:8px 14px;border-radius:4px;cursor:pointer;font-weight:bold;font-size:.8em}
-.ai-send:hover{background:#c49b2a}
-.ai-progress{padding:12px;font-size:.78em;color:#888}
+.ai-send{background:#d4af3722;border:1px solid #d4af37;color:#d4af37;font-family:monospace;font-size:12px;padding:8px 14px;border-radius:4px;cursor:pointer}
+.ai-send:hover{background:#d4af3744}
 </style>
 </head>
 <body>
@@ -151,194 +134,213 @@ footer a:hover{text-decoration:underline}
 
 <!-- NAV -->
 <nav>
-  <div class="nav-title">⬡ SF EMERALD DYNASTY — DAO TREASURY</div>
+  <div class="brand">⬡ SF EMERALD DYNASTY — DAO TREASURY</div>
   <div class="nav-links">
     <a>stellar.expert</a>
     <a>SFE Home</a>
     <a>Clearing Engine</a>
-    <span id="utc-clock">--:--:-- UTC</span>
+    <span id="utcClock">--:--:-- UTC</span>
   </div>
 </nav>
 
 <!-- STATUS BAR -->
 <div class="status-bar">
-  <span>LEDGER #<span id="ledger" style="color:#00bcd4;font-weight:bold">—</span></span>
-  <span class="badge badge-green">● MAINNET</span>
+  <span id="ledgerNum">Ledger: —</span>
+  <span class="badge badge-green">MAINNET</span>
   <span class="badge badge-gold">INSTITUTIONAL CUSTODY</span>
 </div>
 
 <!-- MAIN -->
-<main>
+<div class="main">
 
-  <!-- MARKET PRICES -->
-  <div class="section-title">Market Prices</div>
-  <div class="grid-3">
-    <div class="price-card">
-      <div class="price-label">XLM / USD</div>
-      <div class="price-value" id="xlm-price">Connecting...</div>
-      <div class="price-sub">Binance WebSocket</div>
-    </div>
-    <div class="price-card">
-      <div class="price-label">USDC / USD</div>
-      <div class="price-value" style="color:#00bcd4">$1.0000</div>
-      <div class="price-sub">STABLE</div>
-    </div>
-    <div class="price-card">
-      <div class="price-label">XAUT / USD</div>
-      <div class="price-value" id="xaut-price">Loading...</div>
-      <div class="price-sub">CoinGecko</div>
-    </div>
-  </div>
-
-  <!-- TREASURY BALANCES -->
-  <div class="section-title">Treasury Balances</div>
-  <div class="grid-5">
-    <div class="ticker-card" data-asset="XLM">
-      <div class="ticker-dot" style="background:#00ff88"></div>
-      <div>
-        <div class="ticker-label">XLM</div>
-        <div class="ticker-value" style="color:#00ff88" id="bal-XLM">—</div>
+  <!-- Market Prices -->
+  <div class="section">
+    <div class="section-title">Market Prices</div>
+    <div class="cards-row">
+      <div class="card">
+        <div class="card-label">XLM / USD</div>
+        <div class="card-value" id="xlmPrice">—</div>
+        <div class="card-sub">Binance WebSocket</div>
       </div>
-    </div>
-    <div class="ticker-card" data-asset="SFETREAS">
-      <div class="ticker-dot" style="background:#d4af37"></div>
-      <div>
-        <div class="ticker-label">SFETREAS</div>
-        <div class="ticker-value" style="color:#d4af37" id="bal-SFETREAS">—</div>
+      <div class="card">
+        <div class="card-label">USDC / USD</div>
+        <div class="card-value">$1.0000</div>
+        <div class="card-sub">Circle Stablecoin</div>
       </div>
-    </div>
-    <div class="ticker-card" data-asset="USDC">
-      <div class="ticker-dot" style="background:#00bcd4"></div>
-      <div>
-        <div class="ticker-label">USDC</div>
-        <div class="ticker-value" style="color:#00bcd4" id="bal-USDC">—</div>
-      </div>
-    </div>
-    <div class="ticker-card" data-asset="SFE2025PTN">
-      <div class="ticker-dot" style="background:#9c27b0"></div>
-      <div>
-        <div class="ticker-label">SFE2025PTN</div>
-        <div class="ticker-value" style="color:#9c27b0" id="bal-SFE2025PTN">—</div>
-      </div>
-    </div>
-    <div class="ticker-card" data-asset="SFE2025PSCI">
-      <div class="ticker-dot" style="background:#009688"></div>
-      <div>
-        <div class="ticker-label">SFE2025PSCI</div>
-        <div class="ticker-value" style="color:#009688" id="bal-SFE2025PSCI">—</div>
+      <div class="card">
+        <div class="card-label">XAUT / USD</div>
+        <div class="card-value" id="xautPrice">—</div>
+        <div class="card-sub">CoinGecko · 30s refresh</div>
       </div>
     </div>
   </div>
 
-  <!-- PIPELINE -->
-  <div class="section-title">Deployment Pipeline</div>
-  <div class="pipeline">
-    <div class="pipe-step">
-      <div style="font-size:.78em">DTI Token</div>
-      <div class="pipe-status status-complete">COMPLETE</div>
-    </div>
-    <div class="pipe-arrow">→</div>
-    <div class="pipe-step">
-      <div style="font-size:.78em">pacs.008</div>
-      <div class="pipe-status status-complete">COMPLETE</div>
-    </div>
-    <div class="pipe-arrow">→</div>
-    <div class="pipe-step" data-endpoint="POST https://fiduciary-clearing-engine.onrender.com/ach/submit">
-      <div style="font-size:.78em">Moov ACH</div>
-      <div class="pipe-status status-pending">PENDING</div>
-      <div class="pipe-tooltip">POST /ach/submit<br>Clearing Engine</div>
-    </div>
-    <div class="pipe-arrow">→</div>
-    <div class="pipe-step" data-endpoint="POST {{sftpgo_host}}/api/v2/user/files/uploads">
-      <div style="font-size:.78em">SFTPGo</div>
-      <div class="pipe-status status-pending">PENDING</div>
-      <div class="pipe-tooltip">POST /api/v2/user/files/uploads<br>SFTPGo Host</div>
-    </div>
-    <div class="pipe-arrow">→</div>
-    <div class="pipe-step" data-endpoint="GET https://extstellar.moneygram.com/stellartoml/v1/.well-known/stellar.toml">
-      <div style="font-size:.78em">MoneyGram SEP-6</div>
-      <div class="pipe-status status-pending">PENDING</div>
-      <div class="pipe-tooltip">SEP-6 Deposit Intent<br>extstellar.moneygram.com</div>
-    </div>
-    <div class="pipe-arrow">→</div>
-    <div class="pipe-step">
-      <div style="font-size:.78em">MoneyGram USDC</div>
-      <div class="pipe-status status-waiting">WAITING</div>
-    </div>
-    <div class="pipe-arrow">→</div>
-    <div class="pipe-step">
-      <div style="font-size:.78em">DAO Treasury Receipt</div>
-      <div class="pipe-status status-waiting">WAITING</div>
-    </div>
-  </div>
-
-  <!-- WALLET IDENTITY -->
-  <div class="section-title">Wallet Identity</div>
-  <div class="card">
-    <div style="margin-bottom:10px">
-      <div style="font-size:.75em;color:#888;margin-bottom:4px">Address</div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <span class="wallet-addr blurred" id="wallet-addr">GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW</span>
-        <button class="btn btn-sm" onclick="toggleBlur('wallet-addr',this)">Reveal</button>
-        <button class="btn btn-sm" onclick="copyText('GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW',this)">Copy</button>
+  <!-- Treasury Balances -->
+  <div class="section">
+    <div class="section-title">Treasury Balances</div>
+    <div class="tickers">
+      <div class="ticker" id="tick-XLM" data-asset="XLM">
+        <div class="dot dot-green dot-pulse"></div>
+        <div class="ticker-name">XLM</div>
+        <div class="ticker-bal" id="bal-XLM">—</div>
+        <div class="ticker-usd" id="usd-XLM">—</div>
+      </div>
+      <div class="ticker" id="tick-SFETREAS" data-asset="SFETREAS">
+        <div class="dot dot-gold dot-pulse"></div>
+        <div class="ticker-name">SFETREAS</div>
+        <div class="ticker-bal" id="bal-SFETREAS">—</div>
+        <div class="ticker-usd" id="usd-SFETREAS">—</div>
+      </div>
+      <div class="ticker" id="tick-USDC" data-asset="USDC">
+        <div class="dot dot-blue dot-pulse"></div>
+        <div class="ticker-name">USDC</div>
+        <div class="ticker-bal" id="bal-USDC">—</div>
+        <div class="ticker-usd" id="usd-USDC">—</div>
+      </div>
+      <div class="ticker" id="tick-SFE2025PTN" data-asset="SFE2025PTN">
+        <div class="dot dot-purple dot-pulse"></div>
+        <div class="ticker-name">SFE2025PTN</div>
+        <div class="ticker-bal" id="bal-SFE2025PTN">—</div>
+        <div class="ticker-usd" id="usd-SFE2025PTN">—</div>
+      </div>
+      <div class="ticker" id="tick-SFE2025PSCI" data-asset="SFE2025PSCI">
+        <div class="dot dot-teal dot-pulse"></div>
+        <div class="ticker-name">SFE2025PSCI</div>
+        <div class="ticker-bal" id="bal-SFE2025PSCI">—</div>
+        <div class="ticker-usd" id="usd-SFE2025PSCI">—</div>
       </div>
     </div>
-    <div style="display:flex;gap:24px;flex-wrap:wrap;font-size:.8em">
-      <div><span style="color:#888">home_domain: </span><span style="color:#d4af37">sfe-dynasty.github.io</span></div>
-      <div><span style="color:#888">Framework: </span><span style="color:#00bcd4">US-SFE-PFIA-2025-T1A01</span></div>
+  </div>
+
+  <!-- Pipeline -->
+  <div class="section">
+    <div class="section-title">Pipeline</div>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-box">
+          <div class="pipe-name">DTI Token</div>
+          <div class="status-complete">● COMPLETE</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-box">
+          <div class="pipe-name">pacs.008</div>
+          <div class="status-complete">● COMPLETE</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-box">
+          <div class="pipe-name">Moov ACH</div>
+          <div class="status-pending">● PENDING</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-box">
+          <div class="pipe-name">SFTPGo</div>
+          <div class="status-pending">● PENDING</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-box">
+          <div class="pipe-name">MoneyGram SEP-6</div>
+          <div class="status-pending">● PENDING</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-box">
+          <div class="pipe-name">MoneyGram USDC</div>
+          <div class="status-waiting">● WAITING</div>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-box">
+          <div class="pipe-name">DAO Treasury Receipt</div>
+          <div class="status-waiting">● WAITING</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- AUTHORIZED SIGNERS -->
-  <div class="section-title">Authorized Signers</div>
-  <div class="card">
-    <div class="signer-row">
-      <span class="signer-addr blurred" id="sig1">GBM7FIWAJHOADVDI7PLWNCK3T5ZHJXX6P7LCVNX6ZAMY5R3XNI7C4QGP</span>
-      <span class="weight-badge">Weight 1</span>
-      <button class="btn btn-sm" onclick="toggleBlur('sig1',this)">Reveal</button>
-      <button class="btn btn-sm" onclick="copyText('GBM7FIWAJHOADVDI7PLWNCK3T5ZHJXX6P7LCVNX6ZAMY5R3XNI7C4QGP',this)">Copy</button>
-    </div>
-    <div class="signer-row">
-      <span class="signer-addr blurred" id="sig2">GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW</span>
-      <span class="weight-badge">Weight 1</span>
-      <button class="btn btn-sm" onclick="toggleBlur('sig2',this)">Reveal</button>
-      <button class="btn btn-sm" onclick="copyText('GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW',this)">Copy</button>
-    </div>
-    <div class="signer-row" style="border-bottom:none">
-      <span class="signer-addr blurred" id="sig3">GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML</span>
-      <span class="weight-badge">Weight 1</span>
-      <button class="btn btn-sm" onclick="toggleBlur('sig3',this)">Reveal</button>
-      <button class="btn btn-sm" onclick="copyText('GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML',this)">Copy</button>
-    </div>
-    <div style="margin-top:10px;font-size:.78em;color:#888">Med Threshold: <span style="color:#d4af37">2</span></div>
-  </div>
-
-  <!-- CLOB SETTLEMENT -->
-  <div class="section-title">CLOB Settlement</div>
-  <div class="clob-card">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px">
-      <span style="font-size:.8em;color:#888">TX Hash</span>
-      <span class="settled-badge">SETTLED</span>
-    </div>
-    <div class="clob-tx">65947e881619d0374c69a25481665f05f9e0d59e84cf79438961ed5bfefdd58b</div>
-    <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:.78em">
-      <span><span style="color:#888">Ledger: </span><span style="color:#00bcd4">65,120,726</span></span>
-      <span><span style="color:#888">Fee: </span><span style="color:#e0e0e0">700 stroops</span></span>
-      <span><span style="color:#888">Ops: </span><span style="color:#e0e0e0">7</span></span>
+  <!-- Wallet Identity -->
+  <div class="section">
+    <div class="section-title">Wallet Identity</div>
+    <div class="card">
+      <div class="identity-grid">
+        <div class="identity-label">Address</div>
+        <div class="identity-value">
+          <span id="addrDisplay">G••••••••••••••••••••••••••••••••••••••••••••••••••••DJYW</span>
+          <button class="reveal-btn" onclick="toggleAddr()">Reveal</button>
+          <button class="copy-btn" onclick="copyAddr()">Copy</button>
+        </div>
+        <div class="identity-label">home_domain</div>
+        <div class="identity-value">sfe-dynasty.github.io</div>
+        <div class="identity-label">Framework</div>
+        <div class="identity-value">US-SFE-PFIA-2025-T1A01</div>
+      </div>
     </div>
   </div>
 
-  <!-- RECENT TRANSACTIONS -->
-  <div class="section-title">Recent Transactions <span style="font-size:.7em;color:#555;font-weight:normal">(auto-refresh 15s)</span></div>
-  <div class="card" style="overflow-x:auto">
-    <table>
-      <thead><tr><th>Type</th><th>Amount</th><th>Asset</th><th>From/To</th><th>Ledger</th><th>Time</th></tr></thead>
-      <tbody id="tx-table-body"><tr><td colspan="6" style="color:#555;text-align:center">Loading...</td></tr></tbody>
-    </table>
+  <!-- Authorized Signers -->
+  <div class="section">
+    <div class="section-title">Authorized Signers</div>
+    <div class="signers-list">
+      <div class="signer-row">
+        <div class="signer-addr">GBM7FIWAJHOADVDI7PLWNCK3T5ZHJXX6P7LCVNX6ZAMY5R3XNI7C4QGP</div>
+        <div class="signer-weight">W: 1</div>
+      </div>
+      <div class="signer-row">
+        <div class="signer-addr">GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW</div>
+        <div class="signer-weight">W: 1</div>
+      </div>
+      <div class="signer-row">
+        <div class="signer-addr">GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML</div>
+        <div class="signer-weight">W: 1</div>
+      </div>
+      <div class="signer-row" style="background:#d4af3711;border-color:#d4af3733">
+        <div style="color:#d4af37;font-size:11px">Med Threshold</div>
+        <div class="signer-weight">2</div>
+      </div>
+    </div>
   </div>
 
-</main>
+  <!-- CLOB Settlement -->
+  <div class="section">
+    <div class="section-title">CLOB Settlement</div>
+    <div class="clob-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="font-size:10px;color:#888">TX HASH</div>
+        <span class="badge-settled">SETTLED</span>
+      </div>
+      <div class="clob-tx">65947e881619d0374c69a25481665f05f9e0d59e84cf79438961ed5bfefdd58b</div>
+      <div class="clob-meta">
+        <div>Ledger: <span>65,120,726</span></div>
+        <div>Fee: <span>700 stroops</span></div>
+        <div>Ops: <span>7</span></div>
+        <div><a style="color:#00bcd4;font-size:11px">View on stellar.expert →</a></div>
+      </div>
+    </div>
+  </div>
 
+  <!-- Recent Transactions -->
+  <div class="section">
+    <div class="section-title">Recent Transactions <span style="font-size:10px;color:#555;font-weight:normal;margin-left:8px">15s refresh</span></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>TYPE</th><th>AMOUNT</th><th>ASSET</th><th>FROM / TO</th><th>LEDGER</th><th>TIME</th>
+          </tr>
+        </thead>
+        <tbody id="txTable">
+          <tr><td colspan="6" style="color:#555;text-align:center;padding:20px">Loading transactions…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
 <footer>
   <div style="margin-bottom:8px">
     <a>stellar.toml</a>
@@ -350,395 +352,220 @@ footer a:hover{text-decoration:underline}
 </footer>
 
 <!-- AGENT COMMS TOGGLE -->
-<button id="agent-comms-toggle" onclick="toggleComms()">
-  <span class="comms-dot"></span>
-  ⌨ AGENT COMMS
+<button id="agentCommsToggle" onclick="toggleComms()">
+  <span class="comms-dot"></span> ⌨ AGENT COMMS
 </button>
 
 <!-- AGENT COMMS PANEL -->
-<div id="agent-comms-panel">
-  <div class="comms-tabs">
-    <div class="comms-tab active" onclick="switchCommsTab('http')">HTTP</div>
-    <div class="comms-tab" onclick="switchCommsTab('ws')">WebSocket</div>
-    <div class="comms-tab" onclick="switchCommsTab('sse')">SSE</div>
-    <div class="comms-tab" onclick="switchCommsTab('stellar')">Stellar</div>
-    <div class="comms-tab" onclick="switchCommsTab('env')">ENV</div>
-    <div class="comms-tab" onclick="switchCommsTab('pacs')">pacs.008</div>
-    <div class="comms-tab" onclick="switchCommsTab('nacha')">NACHA</div>
-    <div class="comms-tab" onclick="switchCommsTab('sftp')">SFTPGo</div>
-    <div class="comms-tab" onclick="switchCommsTab('python')">Python</div>
-  </div>
-
-  <!-- HTTP TAB -->
-  <div class="comms-content active" id="tab-http">
-    <select id="http-history" class="history-select" onchange="restoreHistory(this.value)">
-      <option value="">— History (last 10) —</option>
-    </select>
-    <div class="comms-row">
-      <select id="http-method" class="comms-select" onchange="toggleBodyTab()">
-        <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option>
-      </select>
-      <input id="http-url" class="comms-input" placeholder="https://... or {{var}}" style="flex:1">
-      <button class="btn" onclick="sendHTTP()">Send</button>
-    </div>
-    <div class="sub-tabs">
-      <div class="sub-tab active" onclick="switchSubTab('headers')">Headers</div>
-      <div class="sub-tab" id="body-sub-tab" onclick="switchSubTab('body')">Body</div>
-    </div>
-    <div id="sub-headers">
-      <table class="headers-table" id="headers-table">
-        <tbody><tr><td><input placeholder="Key" class="hdr-key"></td><td><input placeholder="Value" class="hdr-val"></td><td><button class="copy-btn" onclick="removeHeaderRow(this)">×</button></td></tr>
-      </tbody></table>
-      <button class="btn btn-sm" onclick="addHeaderRow()">+ Header</button>
-    </div>
-    <div id="sub-body" style="display:none">
-      <textarea id="http-body" class="comms-textarea" rows="5" placeholder="{&quot;key&quot;:&quot;value&quot;}"></textarea>
-    </div>
-    <div id="http-response" class="comms-response" style="display:none">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
-        <span id="http-status-badge"></span>
-        <span id="http-time" style="font-size:.72em;color:#888"></span>
-        <span id="http-size" style="font-size:.72em;color:#888"></span>
-        <div style="margin-left:auto;display:flex;gap:6px">
-          <button class="copy-btn" onclick="switchRespView('pretty')">Pretty</button>
-          <button class="copy-btn" onclick="switchRespView('raw')">Raw</button>
-          <button class="copy-btn" onclick="copyRespBody()">Copy</button>
-        </div>
-      </div>
-      <div id="http-resp-body" class="pretty-json"></div>
-    </div>
-  </div>
-
-  <!-- WEBSOCKET TAB -->
-  <div class="comms-content" id="tab-ws">
-    <div class="comms-row">
-      <input id="ws-url" class="comms-input" placeholder="wss://..." value="wss://stream.binance.com:9443/ws/xlmusdt@ticker">
-      <button class="btn" id="ws-connect-btn" onclick="wsConnect()">Connect</button>
-    </div>
-    <div class="comms-row">
-      <input id="ws-msg" class="comms-input" placeholder="Message to send..." disabled="">
-      <button class="btn" id="ws-send-btn" onclick="wsSend()" disabled="">Send</button>
-    </div>
-    <div class="ws-log" id="ws-log"></div>
-  </div>
-
-  <!-- SSE TAB -->
-  <div class="comms-content" id="tab-sse">
-    <div class="comms-row">
-      <input id="sse-url" class="comms-input" placeholder="https://...">
-      <button class="btn" id="sse-btn" onclick="sseToggle()">Start</button>
-      <button class="btn btn-sm" onclick="document.getElementById('sse-log').innerHTML=''">Clear</button>
-    </div>
-    <div class="sse-log" id="sse-log"></div>
-  </div>
-
-  <!-- STELLAR TAB -->
-  <div class="comms-content" id="tab-stellar">
-    <select id="stellar-select" class="comms-select" style="width:100%;margin-bottom:8px">
-      <option value="0">1. DAO Treasury Balances</option>
-      <option value="1">2. DAO Treasury Payments</option>
-      <option value="2">3. SFETREAS Orderbook</option>
-      <option value="3">4. Stellar Fee Stats</option>
-      <option value="4">5. MoneyGram TOML</option>
-      <option value="5">6. SFE stellar.toml</option>
-    </select>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <button class="btn" onclick="stellarLoad()">Load into HTTP</button>
-      <button class="btn" onclick="stellarQuickFire()">Quick Fire</button>
-    </div>
-    <div id="stellar-result" class="comms-response" style="display:none;max-height:250px"></div>
-  </div>
-
-  <!-- ENV TAB -->
-  <div class="comms-content" id="tab-env">
-    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-      <button class="btn btn-sm" onclick="addEnvRow()">+ Row</button>
-      <button class="btn btn-sm" onclick="exportEnv()">Export JSON</button>
-      <button class="btn btn-sm" onclick="importEnvPrompt()">Import JSON</button>
-    </div>
-    <table class="env-table" id="env-table">
-      <thead><tr><th style="color:#888;font-size:.75em;padding:4px">Key</th><th style="color:#888;font-size:.75em;padding:4px">Value</th><th></th></tr></thead>
-      <tbody id="env-tbody"></tbody>
-    </table>
-  </div>
-
-  <!-- pacs.008 TAB -->
-  <div class="comms-content" id="tab-pacs">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div><label style="font-size:.72em;color:#888">MsgId</label><input id="pacs-msgid" class="comms-input" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">CreDtTm</label><input id="pacs-crdttm" class="comms-input" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">NbOfTxs</label><input id="pacs-nbtxs" class="comms-input" value="1" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">CtrlSum</label><input id="pacs-ctrlsum" class="comms-input" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">Debtor Name</label><input id="pacs-dname" class="comms-input" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">Debtor IBAN</label><input id="pacs-diban" class="comms-input" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">Creditor Name</label><input id="pacs-cname" class="comms-input" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">Creditor IBAN</label><input id="pacs-ciban" class="comms-input" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">Amount</label><input id="pacs-amt" class="comms-input" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">Currency</label><input id="pacs-ccy" class="comms-input" value="USD" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">EndToEndId</label><input id="pacs-e2e" class="comms-input" style="width:100%"></div>
-      <div><label style="font-size:.72em;color:#888">UETR</label><input id="pacs-uetr" class="comms-input" style="width:100%"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-      <button class="btn" onclick="generatePacs()">Generate XML</button>
-      <button class="btn btn-sm" onclick="copyPacsXml()">Copy XML</button>
-      <button class="btn btn-sm" onclick="sendPacsPost()">Send as POST</button>
-    </div>
-    <textarea id="pacs-xml" class="comms-textarea" rows="8" readonly="" placeholder="Generated XML will appear here..."></textarea>
-  </div>
-
-  <!-- NACHA TAB -->
-  <div class="comms-content" id="tab-nacha">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div><label style="font-size:.72em;color:#888">Immediate Destination</label><input id="nacha-dest" class="comms-input" style="width:100%" placeholder="0123456789"></div>
-      <div><label style="font-size:.72em;color:#888">Immediate Origin</label><input id="nacha-orig" class="comms-input" style="width:100%" placeholder="1234567890"></div>
-      <div><label style="font-size:.72em;color:#888">Company Name</label><input id="nacha-cname" class="comms-input" style="width:100%" placeholder="SF EMERALD DYNASTY"></div>
-      <div><label style="font-size:.72em;color:#888">Company ID</label><input id="nacha-cid" class="comms-input" style="width:100%" placeholder="1234567890"></div>
-      <div><label style="font-size:.72em;color:#888">SEC Code</label>
-        <select id="nacha-sec" class="comms-select" style="width:100%"><option>PPD</option><option>CCD</option><option>WEB</option></select>
-      </div>
-      <div><label style="font-size:.72em;color:#888">Amount $</label><input id="nacha-amt" class="comms-input" style="width:100%" placeholder="100.00"></div>
-      <div><label style="font-size:.72em;color:#888">Receiving Routing</label><input id="nacha-rrouting" class="comms-input" style="width:100%" placeholder="021000021"></div>
-      <div><label style="font-size:.72em;color:#888">DFI Account</label><input id="nacha-dfi" class="comms-input" style="width:100%" placeholder="123456789012345678"></div>
-      <div><label style="font-size:.72em;color:#888">Individual Name</label><input id="nacha-iname" class="comms-input" style="width:100%" placeholder="JOHN DOE"></div>
-      <div><label style="font-size:.72em;color:#888">Individual ID</label><input id="nacha-iid" class="comms-input" style="width:100%" placeholder="ID001"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-      <button class="btn" onclick="generateNacha()">Generate NACHA</button>
-      <button class="btn btn-sm" onclick="copyNacha()">Copy</button>
-      <button class="btn btn-sm" onclick="downloadNacha()">Download .ach</button>
-      <button class="btn btn-sm" onclick="sendNachaPost()">Send as POST</button>
-    </div>
-    <textarea id="nacha-output" class="comms-textarea" rows="8" readonly="" style="font-family:'Courier New',monospace;font-size:.72em" placeholder="Generated NACHA will appear here..."></textarea>
-  </div>
-
-  <!-- SFTPGo TAB -->
-  <div class="comms-content" id="tab-sftp">
-    <div class="comms-row">
-      <input id="sftp-host" class="comms-input" placeholder="{{sftpgo_host}} or https://..." style="flex:2">
-      <input id="sftp-port" class="comms-input" value="8080" style="width:70px">
-    </div>
-    <div class="comms-row">
-      <input id="sftp-token" class="comms-input" placeholder="Bearer Token">
-      <button class="btn" onclick="sftpConnect()">Connect</button>
-    </div>
-    <div class="comms-row">
-      <button class="btn btn-sm" onclick="sftpListFiles()">List Files</button>
-      <input type="file" id="sftp-file" style="font-size:.75em;color:#e0e0e0;flex:1">
-      <button class="btn btn-sm" onclick="sftpUpload()">Upload</button>
-    </div>
-    <div id="sftp-files" style="font-size:.75em;margin-top:6px"></div>
-    <div class="sftp-log" id="sftp-log"></div>
-    <button class="btn btn-sm" style="margin-top:6px" onclick="document.getElementById('sftp-log').innerHTML=''">Clear Log</button>
-  </div>
-
-  <!-- PYTHON TAB -->
-  <div class="comms-content" id="tab-python">
-    <div class="comms-row">
-      <select id="py-template" class="comms-select" onchange="loadPyTemplate()">
-        <option value="balance">Stellar Balance Check</option>
-        <option value="uuid">Generate UUID4</option>
-        <option value="hmac">HMAC-SHA256 Signer</option>
-      </select>
-      <button class="btn" onclick="runPython()">Run</button>
-      <button class="btn btn-sm" onclick="document.getElementById('py-output').innerHTML=''">Clear</button>
-    </div>
-    <textarea id="py-code" class="comms-textarea" rows="8" style="font-family:'Courier New',monospace;tab-size:4"></textarea>
-    <div id="py-status" style="font-size:.75em;color:#888;margin-top:4px"></div>
-    <div class="py-output" id="py-output"></div>
-  </div>
+<div id="agentCommsPanel">
+  <div class="comms-tabs" id="commsTabs"></div>
+  <div id="commsTabBodies"></div>
 </div>
 
 <!-- AI AGENT BUTTON -->
-<button id="ai-agent-btn" onclick="toggleAI()">
-  🤖
-  <span id="ai-agent-tooltip">AI AGENT</span>
-</button>
+<button id="aiAgentBtn" onclick="toggleAI()">🤖 AI AGENT</button>
 
-<!-- AI PANEL -->
-<div id="ai-panel">
+<!-- AI AGENT PANEL -->
+<div id="aiAgentPanel">
   <div class="ai-header">
-    <span class="ai-title">⬡ DAO TREASURY AI</span>
-    <button class="ai-close" onclick="toggleAI()">✕</button>
+    <span>DAO TREASURY AI AGENT</span>
+    <span class="ai-mode-badge" id="aiModeBadge">DETECTING…</span>
   </div>
-  <div class="ai-messages" id="ai-messages">
-    <div class="ai-msg system">DAO Treasury AI — Powered by WebLLM (Phi-3 Mini)</div>
+  <div class="ai-messages" id="aiMessages">
+    <div class="ai-msg system">Initializing AI engine…</div>
   </div>
-  <div id="ai-progress" class="ai-progress" style="display:none">
-    <div>Loading Phi-3 Mini into browser... <span id="ai-pct">0</span>%</div>
-    <div class="progress-bar-wrap"><div class="progress-bar" id="ai-progress-bar"></div></div>
+  <div class="ai-progress" id="aiProgress" style="display:none">
+    <span id="aiProgressText">Loading model…</span>
+    <div class="ai-progress-bar"><div class="ai-progress-fill" id="aiProgressFill"></div></div>
   </div>
   <div class="ai-input-row">
-    <textarea id="ai-input" class="ai-input" rows="2" placeholder="Ask about DAO Treasury, SFETREAS, pacs.008, NACHA..." onkeydown="aiKeydown(event)"></textarea>
+    <textarea class="ai-input" id="aiInput" placeholder="Ask about the DAO treasury…" onkeydown="aiKeyDown(event)"></textarea>
     <button class="ai-send" onclick="aiSend()">Send</button>
   </div>
 </div>
 
 <script>
-// ===== PARTICLES =====
+// ============================================================
+// PARTICLES
+// ============================================================
 (function(){
   const canvas=document.getElementById('particles');
   const ctx=canvas.getContext('2d');
-  let W,H,particles=[];
+  let W,H,pts=[];
   function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
   resize();window.addEventListener('resize',resize);
-  for(let i=0;i<60;i++){
-    particles.push({
-      x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
-      vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
-      r:Math.random()*2+1,
-      color:i%2===0?'#d4af37':'#ffffff'
-    });
-  }
+  for(let i=0;i<80;i++)pts.push({x:Math.random()*2000,y:Math.random()*1200,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.5+.5});
   function draw(){
     ctx.clearRect(0,0,W,H);
-    particles.forEach(p=>{
+    pts.forEach(p=>{
       p.x+=p.vx;p.y+=p.vy;
       if(p.x<0)p.x=W;if(p.x>W)p.x=0;
       if(p.y<0)p.y=H;if(p.y>H)p.y=0;
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=p.color;ctx.globalAlpha=0.12;ctx.fill();ctx.globalAlpha=1;
+      ctx.fillStyle='rgba(212,175,55,0.25)';ctx.fill();
     });
+    pts.forEach((a,i)=>pts.slice(i+1).forEach(b=>{
+      const d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<120){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(212,175,55,${0.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.stroke();}
+    }));
     requestAnimationFrame(draw);
   }
   draw();
 })();
 
-// ===== UTC CLOCK =====
+// ============================================================
+// UTC CLOCK
+// ============================================================
 function updateClock(){
-  const now=new Date();
-  document.getElementById('utc-clock').textContent=
-    now.toUTCString().split(' ').slice(4,5)[0]+' UTC';
+  const n=new Date();
+  document.getElementById('utcClock').textContent=
+    n.toUTCString().split(' ').slice(4,5)[0]+' UTC';
 }
-updateClock();setInterval(updateClock,1000);
+setInterval(updateClock,1000);updateClock();
 
-// ===== LEDGER =====
-function fetchLedger(){
-  fetch('https://horizon.stellar.org/fee_stats')
-    .then(r=>r.json()).then(d=>{
-      if(d.last_ledger)document.getElementById('ledger').textContent=Number(d.last_ledger).toLocaleString();
-    }).catch(()=>{});
+// ============================================================
+// WALLET IDENTITY
+// ============================================================
+const DAO_ADDR='GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
+let addrRevealed=false;
+function toggleAddr(){
+  addrRevealed=!addrRevealed;
+  document.getElementById('addrDisplay').textContent=addrRevealed?DAO_ADDR:'G••••••••••••••••••••••••••••••••••••••••••••••••••••DJYW';
+  document.querySelector('.reveal-btn').textContent=addrRevealed?'Hide':'Reveal';
 }
-fetchLedger();setInterval(fetchLedger,5000);
+function copyAddr(){
+  navigator.clipboard.writeText(DAO_ADDR).catch(()=>{});
+}
 
-// ===== XLM PRICE (Binance WS) =====
-(function(){
-  let ws;
-  function connect(){
-    try{
-      ws=new WebSocket('wss://stream.binance.com:9443/ws/xlmusdt@ticker');
-      ws.onmessage=e=>{
-        const d=JSON.parse(e.data);
-        if(d.c){document.getElementById('xlm-price').textContent='$'+parseFloat(d.c).toFixed(4);}
-      };
-      ws.onerror=()=>{document.getElementById('xlm-price').textContent='Error';};
-      ws.onclose=()=>{setTimeout(connect,5000);};
-    }catch(e){document.getElementById('xlm-price').textContent='N/A';}
-  }
-  connect();
+// ============================================================
+// XLM PRICE — Binance WebSocket
+// ============================================================
+let xlmPrice=0;
+(function connectBinance(){
+  try{
+    const ws=new WebSocket('wss://stream.binance.com:9443/ws/xlmusdt@ticker');
+    ws.onmessage=e=>{
+      const d=JSON.parse(e.data);
+      xlmPrice=parseFloat(d.c)||0;
+      document.getElementById('xlmPrice').textContent='$'+xlmPrice.toFixed(4);
+      updateUsdValues();
+    };
+    ws.onerror=()=>setTimeout(connectBinance,5000);
+    ws.onclose=()=>setTimeout(connectBinance,5000);
+  }catch(e){setTimeout(connectBinance,10000);}
 })();
 
-// ===== XAUT PRICE =====
-function fetchXAUT(){
-  fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether-gold&vs_currencies=usd')
-    .then(r=>r.json()).then(d=>{
-      const p=d['tether-gold']&&d['tether-gold'].usd;
-      document.getElementById('xaut-price').textContent=p?'$'+p.toLocaleString():'N/A';
-    }).catch(()=>{document.getElementById('xaut-price').textContent='N/A';});
+// ============================================================
+// XAUT PRICE — CoinGecko
+// ============================================================
+let xautPrice=0;
+async function fetchXAUT(){
+  try{
+    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether-gold&vs_currencies=usd');
+    const d=await r.json();
+    xautPrice=d['tether-gold']?.usd||0;
+    document.getElementById('xautPrice').textContent='$'+xautPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }catch(e){}
 }
 fetchXAUT();setInterval(fetchXAUT,30000);
 
-// ===== TREASURY BALANCES =====
+// ============================================================
+// TREASURY BALANCES — Horizon
+// ============================================================
 const SFETREAS_ISSUER='GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP';
 const USDC_ISSUER='GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
-const DAO_ADDR='GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
+let balances={};
 
-function animateCount(el,newVal){
-  const prev=parseFloat(el.textContent.replace(/,/g,''))||0;
-  const next=parseFloat(newVal)||0;
-  const steps=20;let step=0;
-  const inc=(next-prev)/steps;
-  const iv=setInterval(()=>{
-    step++;
-    el.textContent=(prev+inc*step).toLocaleString(undefined,{maximumFractionDigits:4});
-    if(step>=steps){el.textContent=next.toLocaleString(undefined,{maximumFractionDigits:4});clearInterval(iv);}
-  },30);
+function flashTicker(id){
+  const el=document.getElementById('tick-'+id);
+  if(!el)return;
+  el.classList.remove('ticker-flash');
+  void el.offsetWidth;
+  el.classList.add('ticker-flash');
 }
 
-function updateBalances(balances){
-  balances.forEach(b=>{
-    let code,issuer;
-    if(b.asset_type==='native'){code='XLM';}
-    else{code=b.asset_code;issuer=b.asset_issuer;}
-    const el=document.getElementById('bal-'+code);
-    if(el){
-      const card=el.closest('[data-asset]');
-      animateCount(el,b.balance);
-      if(card){card.classList.remove('ticker-flash');void card.offsetWidth;card.classList.add('ticker-flash');}
+function updateUsdValues(){
+  const xlmBal=parseFloat(balances['XLM'])||0;
+  const usdcBal=parseFloat(balances['USDC'])||0;
+  if(xlmPrice>0&&xlmBal>0)document.getElementById('usd-XLM').textContent='≈ $'+(xlmBal*xlmPrice).toFixed(2);
+  if(usdcBal>0)document.getElementById('usd-USDC').textContent='≈ $'+usdcBal.toFixed(2);
+}
+
+async function fetchBalances(flash){
+  try{
+    const r=await fetch('https://horizon.stellar.org/accounts/'+DAO_ADDR);
+    const d=await r.json();
+    if(d.balances){
+      d.balances.forEach(b=>{
+        let key='';
+        if(b.asset_type==='native'){key='XLM';}
+        else if(b.asset_code==='SFETREAS'&&b.asset_issuer===SFETREAS_ISSUER){key='SFETREAS';}
+        else if(b.asset_code==='USDC'&&b.asset_issuer===USDC_ISSUER){key='USDC';}
+        else if(b.asset_code==='SFE2025PTN'){key='SFE2025PTN';}
+        else if(b.asset_code==='SFE2025PSCI'){key='SFE2025PSCI';}
+        if(key){
+          const val=parseFloat(b.balance).toFixed(4);
+          balances[key]=val;
+          const el=document.getElementById('bal-'+key);
+          if(el){el.textContent=parseFloat(val).toLocaleString('en-US',{minimumFractionDigits:4});}
+          if(flash)flashTicker(key);
+        }
+      });
+      updateUsdValues();
+      // update ledger from last_modified_ledger if available
+      if(d.last_modified_ledger)document.getElementById('ledgerNum').textContent='Ledger: '+d.last_modified_ledger.toLocaleString();
     }
-  });
+  }catch(e){}
 }
+fetchBalances(false);setInterval(()=>fetchBalances(false),10000);
 
-function fetchBalances(){
-  fetch('https://horizon.stellar.org/accounts/'+DAO_ADDR)
-    .then(r=>r.json()).then(d=>{if(d.balances)updateBalances(d.balances);})
-    .catch(()=>{});
+// ============================================================
+// RECENT TRANSACTIONS
+// ============================================================
+async function fetchTxns(){
+  try{
+    const r=await fetch('https://horizon.stellar.org/accounts/'+DAO_ADDR+'/payments?limit=5&order=desc');
+    const d=await r.json();
+    const rows=d._embedded?.records||[];
+    const tbody=document.getElementById('txTable');
+    if(!rows.length){tbody.innerHTML='<tr><td colspan="6" style="color:#555;text-align:center;padding:20px">No transactions found</td></tr>';return;}
+    tbody.innerHTML=rows.map(tx=>{
+      const type=tx.type||'—';
+      const amount=tx.amount?parseFloat(tx.amount).toFixed(4):'—';
+      const asset=tx.asset_type==='native'?'XLM':(tx.asset_code||'—');
+      const fromto=tx.from===DAO_ADDR?(tx.to?tx.to.slice(0,8)+'…'+tx.to.slice(-4):'—'):(tx.from?tx.from.slice(0,8)+'…'+tx.from.slice(-4):'—');
+      const dir=tx.from===DAO_ADDR?'→':'←';
+      const ledger=tx.transaction?._links?tx.transaction_hash?.slice(0,8)+'…':(tx.paging_token||'—');
+      const time=tx.created_at?new Date(tx.created_at).toLocaleTimeString():'—';
+      const amtColor=tx.from===DAO_ADDR?'#ff4444':'#00ff88';
+      return `<tr>
+        <td style="color:#00bcd4">${type.replace(/_/g,' ')}</td>
+        <td style="color:${amtColor}">${amount}</td>
+        <td>${asset}</td>
+        <td style="font-size:10px;color:#888">${dir} ${fromto}</td>
+        <td style="font-size:10px;color:#555">${tx.paging_token?.slice(0,10)||'—'}</td>
+        <td style="font-size:10px;color:#555">${time}</td>
+      </tr>`;
+    }).join('');
+  }catch(e){
+    document.getElementById('txTable').innerHTML='<tr><td colspan="6" style="color:#ff4444;text-align:center;padding:20px">Error loading transactions</td></tr>';
+  }
 }
-fetchBalances();setInterval(fetchBalances,10000);
+fetchTxns();setInterval(fetchTxns,15000);
 
-// ===== TRANSACTIONS =====
-function relTime(iso){
-  const diff=Math.floor((Date.now()-new Date(iso))/1000);
-  if(diff<60)return diff+'s ago';
-  if(diff<3600)return Math.floor(diff/60)+'m ago';
-  if(diff<86400)return Math.floor(diff/3600)+'h ago';
-  return Math.floor(diff/86400)+'d ago';
-}
-function truncAddr(a){return a?a.slice(0,6)+'...'+a.slice(-4):'';}
+// ============================================================
+// AGENT COMMS PANEL
+// ============================================================
+const COMMS_TABS=['HTTP','WebSocket','SSE','Stellar','ENV','pacs.008','NACHA','SFTPGo','Python'];
+let activeCommsTab=0;
+let httpHistory=[];
+let wsConn=null;
+let sseSource=null;
+let pyodideInstance=null;
+let pyodideLoading=false;
 
-function fetchTxs(){
-  fetch('https://horizon.stellar.org/accounts/'+DAO_ADDR+'/payments?limit=5&order=desc')
-    .then(r=>r.json()).then(d=>{
-      const rows=d._embedded&&d._embedded.records||[];
-      const tbody=document.getElementById('tx-table-body');
-      if(!rows.length){tbody.innerHTML='<tr><td colspan="6" style="color:#555;text-align:center">No transactions</td></tr>';return;}
-      tbody.innerHTML=rows.map(r=>{
-        const from=r.from||r.source_account||'';
-        const to=r.to||'';
-        const peer=from===DAO_ADDR?truncAddr(to):truncAddr(from);
-        const asset=r.asset_type==='native'?'XLM':(r.asset_code||'?');
-        const amt=r.amount?parseFloat(r.amount).toLocaleString(undefined,{maximumFractionDigits:4}):'—';
-        return `<tr><td style="color:#888">${r.type||'payment'}</td><td style="color:#00ff88">${amt}</td><td style="color:#d4af37">${asset}</td><td style="color:#00bcd4;font-size:.7em">${peer}</td><td>${r.transaction&&r.transaction.ledger||'—'}</td><td style="color:#555">${relTime(r.created_at)}</td></tr>`;
-      }).join('');
-    }).catch(()=>{});
-}
-fetchTxs();setInterval(fetchTxs,15000);
-
-// ===== HELPERS =====
-function toggleBlur(id,btn){
-  const el=document.getElementById(id);
-  if(el.classList.contains('blurred')){el.classList.remove('blurred');btn.textContent='Hide';}
-  else{el.classList.add('blurred');btn.textContent='Reveal';}
-}
-function copyText(text,btn){
-  navigator.clipboard.writeText(text).then(()=>{const t=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=t,1500);}).catch(()=>{});
-}
-
-// ===== AGENT COMMS =====
-function toggleComms(){
-  const p=document.getElementById('agent-comms-panel');
-  p.classList.toggle('open');
-}
-function switchCommsTab(name){
-  document.querySelectorAll('.comms-tab').forEach((t,i)=>{
-    const names=['http','ws','sse','stellar','env','pacs','nacha','sftp','python'];
-    t.classList.toggle('active',names[i]===name);
-  });
-  document.querySelectorAll('.comms-content').forEach(c=>c.classList.remove('active'));
-  const el=document.getElementById('tab-'+name);
-  if(el)el.classList.add('active');
-}
-
-// ENV
+// ENV store
 const DEFAULT_ENV={
   dao_treasury:'GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW',
   sfetreas_issuer:'GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP',
@@ -750,482 +577,729 @@ const DEFAULT_ENV={
 };
 let envVars={};
 function loadEnv(){
-  try{envVars=JSON.parse(localStorage.getItem('sfe_env')||'{}');}catch(e){envVars={};}
-  if(!Object.keys(envVars).length)envVars={...DEFAULT_ENV};
-  renderEnvTable();
+  try{const s=localStorage.getItem('dao_env');envVars=s?JSON.parse(s):{...DEFAULT_ENV};}
+  catch(e){envVars={...DEFAULT_ENV};}
 }
-function saveEnv(){
-  const rows=document.querySelectorAll('#env-tbody tr');
-  envVars={};
-  rows.forEach(r=>{
-    const k=r.querySelector('.env-key').value.trim();
-    const v=r.querySelector('.env-val').value;
-    if(k)envVars[k]=v;
-  });
-  localStorage.setItem('sfe_env',JSON.stringify(envVars));
-}
-function renderEnvTable(){
-  const tbody=document.getElementById('env-tbody');
-  tbody.innerHTML='';
-  Object.entries(envVars).forEach(([k,v])=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td><input class="env-key" value="${k}" onchange="saveEnv()"></td><td><input class="env-val" value="${v}" onchange="saveEnv()"></td><td><button class="copy-btn" onclick="this.closest('tr').remove();saveEnv()">×</button></td>`;
-    tbody.appendChild(tr);
-  });
-}
-function addEnvRow(){
-  const tbody=document.getElementById('env-tbody');
-  const tr=document.createElement('tr');
-  tr.innerHTML=`<td><input class="env-key" placeholder="key" onchange="saveEnv()"></td><td><input class="env-val" placeholder="value" onchange="saveEnv()"></td><td><button class="copy-btn" onclick="this.closest('tr').remove();saveEnv()">×</button></td>`;
-  tbody.appendChild(tr);
-}
-function exportEnv(){
-  saveEnv();
-  const blob=new Blob([JSON.stringify(envVars,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sfe_env.json';a.click();
-}
-function importEnvPrompt(){
-  const txt=prompt('Paste JSON:');
-  if(!txt)return;
-  try{envVars=JSON.parse(txt);localStorage.setItem('sfe_env',JSON.stringify(envVars));renderEnvTable();}
-  catch(e){alert('Invalid JSON');}
-}
+function saveEnv(){try{localStorage.setItem('dao_env',JSON.stringify(envVars));}catch(e){}}
+loadEnv();
+
 function resolveVars(str){
   return str.replace(/\{\{(\w+)\}\}/g,(_,k)=>envVars[k]||_);
 }
-loadEnv();
 
-// HTTP TAB
-let httpHistory=[];
-let lastRespRaw='';
-function toggleBodyTab(){
-  const m=document.getElementById('http-method').value;
-  const show=['POST','PUT','PATCH'].includes(m);
-  document.getElementById('body-sub-tab').style.display=show?'':'none';
-  if(!show)switchSubTab('headers');
+function buildCommsUI(){
+  const tabsEl=document.getElementById('commsTabs');
+  const bodiesEl=document.getElementById('commsTabBodies');
+  tabsEl.innerHTML=COMMS_TABS.map((t,i)=>`<div class="comms-tab${i===0?' active':''}" onclick="switchCommsTab(${i})">${t}</div>`).join('');
+  bodiesEl.innerHTML=COMMS_TABS.map((t,i)=>`<div class="comms-body${i===0?' active':''}" id="commsBody${i}">${buildTabBody(t,i)}</div>`).join('');
+  renderEnvTable();
 }
-function switchSubTab(name){
-  document.querySelectorAll('.sub-tab').forEach(t=>t.classList.toggle('active',t.textContent.toLowerCase()===name));
-  document.getElementById('sub-headers').style.display=name==='headers'?'':'none';
-  document.getElementById('sub-body').style.display=name==='body'?'':'none';
+
+function switchCommsTab(i){
+  activeCommsTab=i;
+  document.querySelectorAll('.comms-tab').forEach((el,j)=>el.classList.toggle('active',j===i));
+  document.querySelectorAll('.comms-body').forEach((el,j)=>el.classList.toggle('active',j===i));
 }
-function addHeaderRow(){
-  const t=document.getElementById('headers-table');
-  const tr=document.createElement('tr');
-  tr.innerHTML=`<td><input placeholder="Key" class="hdr-key"></td><td><input placeholder="Value" class="hdr-val"></td><td><button class="copy-btn" onclick="removeHeaderRow(this)">×</button></td>`;
-  t.appendChild(tr);
-}
-function removeHeaderRow(btn){btn.closest('tr').remove();}
-function getHeaders(){
-  const h={};
-  document.querySelectorAll('#headers-table tr').forEach(r=>{
-    const k=r.querySelector('.hdr-key').value.trim();
-    const v=r.querySelector('.hdr-val').value.trim();
-    if(k)h[k]=resolveVars(v);
-  });
-  return h;
-}
-function syntaxHighlight(json){
-  if(typeof json!=='string')json=JSON.stringify(json,null,2);
-  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,m=>{
-    let cls='json-num';
-    if(/^"/.test(m)){cls=/:$/.test(m)?'json-key':'json-str';}
-    else if(/true|false/.test(m)){cls='json-bool';}
-    else if(/null/.test(m)){cls='json-null';}
-    return `<span class="${cls}">${m}</span>`;
-  });
-}
-let currentRespMode='pretty';
-function switchRespView(mode){
-  currentRespMode=mode;
-  const el=document.getElementById('http-resp-body');
-  if(mode==='pretty'){
-    try{el.innerHTML=`<div class="pretty-json">${syntaxHighlight(JSON.parse(lastRespRaw))}</div>`;}
-    catch(e){el.textContent=lastRespRaw;}
-  }else{el.textContent=lastRespRaw;}
-}
-function copyRespBody(){navigator.clipboard.writeText(lastRespRaw).catch(()=>{});}
-async function sendHTTP(){
-  const method=document.getElementById('http-method').value;
-  const url=resolveVars(document.getElementById('http-url').value.trim());
-  if(!url)return;
-  const headers=getHeaders();
-  const bodyEl=document.getElementById('http-body');
-  const opts={method,headers};
-  if(['POST','PUT','PATCH'].includes(method)&&bodyEl.value.trim()){
-    opts.body=bodyEl.value;
-    if(!headers['Content-Type'])opts.headers['Content-Type']='application/json';
+
+function buildTabBody(name,i){
+  switch(name){
+    case 'HTTP': return `
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <select class="comms-input" id="httpMethod" style="width:90px">
+          <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option>
+        </select>
+        <input class="comms-input" id="httpUrl" placeholder="https://… or {{var}}/path" style="flex:1">
+      </div>
+      <label class="comms-label">Headers (one per line, Key: Value)</label>
+      <textarea class="comms-input" id="httpHeaders" rows="2" placeholder="Content-Type: application/json"></textarea>
+      <label class="comms-label">Body</label>
+      <textarea class="comms-input" id="httpBody" rows="3" placeholder='{"key":"value"}'></textarea>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+        <button class="comms-btn" onclick="httpSend()">▶ Send</button>
+        <button class="comms-btn" onclick="showHttpHistory()">History</button>
+        <span id="httpStatus" style="font-size:10px;color:#555"></span>
+      </div>
+      <div class="response-pane" id="httpResponse">—</div>`;
+    case 'WebSocket': return `
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <input class="comms-input" id="wsUrl" placeholder="wss://…" style="flex:1">
+        <button class="comms-btn green" id="wsConnBtn" onclick="wsToggle()">Connect</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <input class="comms-input" id="wsMsg" placeholder="Message to send…" style="flex:1">
+        <button class="comms-btn" onclick="wsSend()">Send</button>
+      </div>
+      <button class="comms-btn red" onclick="wsClear()">Clear Log</button>
+      <div class="log-pane" id="wsLog"></div>`;
+    case 'SSE': return `
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <input class="comms-input" id="sseUrl" placeholder="https://…/events" style="flex:1">
+        <button class="comms-btn green" id="sseBtn" onclick="sseToggle()">Start</button>
+      </div>
+      <button class="comms-btn red" onclick="sseClear()">Clear Log</button>
+      <div class="log-pane" id="sseLog"></div>`;
+    case 'Stellar': return `
+      <select class="comms-input" id="stellarReq" style="margin-bottom:6px">
+        <option value="1">1. DAO Treasury Balances</option>
+        <option value="2">2. DAO Treasury Payments</option>
+        <option value="3">3. SFETREAS Orderbook</option>
+        <option value="4">4. Stellar Fee Stats</option>
+        <option value="5">5. MoneyGram TOML</option>
+        <option value="6">6. SFE TOML</option>
+      </select>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <button class="comms-btn" onclick="stellarLoad()">Load URL</button>
+        <button class="comms-btn green" onclick="stellarQuickFire()">⚡ Quick Fire</button>
+        <span id="stellarStatus" style="font-size:10px;color:#555"></span>
+      </div>
+      <input class="comms-input" id="stellarUrl" style="margin-bottom:6px" readonly>
+      <div class="response-pane" id="stellarResponse">—</div>`;
+    case 'ENV': return `
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button class="comms-btn" onclick="envSave()">Save</button>
+        <button class="comms-btn" onclick="envExport()">Export JSON</button>
+        <button class="comms-btn" onclick="envImportClick()">Import JSON</button>
+        <input type="file" id="envImportFile" style="display:none" accept=".json" onchange="envImport(event)">
+      </div>
+      <table class="env-table" id="envTable"></table>`;
+    case 'pacs.008': return `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div><label class="comms-label">MsgId</label><input class="comms-input" id="p8MsgId" placeholder="auto-UUID"></div>
+        <div><label class="comms-label">CreDtTm</label><input class="comms-input" id="p8CreDtTm" placeholder="auto-ISO"></div>
+        <div><label class="comms-label">NbOfTxs</label><input class="comms-input" id="p8NbOfTxs" value="1"></div>
+        <div><label class="comms-label">CtrlSum</label><input class="comms-input" id="p8CtrlSum" value="1000.00"></div>
+        <div><label class="comms-label">Debtor Name</label><input class="comms-input" id="p8DebtorName" value="SF Emerald Dynasty Trust"></div>
+        <div><label class="comms-label">Debtor IBAN</label><input class="comms-input" id="p8DebtorIBAN" value="US00000000000000000001"></div>
+        <div><label class="comms-label">Creditor Name</label><input class="comms-input" id="p8CreditorName" value="DAO Treasury"></div>
+        <div><label class="comms-label">Creditor IBAN</label><input class="comms-input" id="p8CreditorIBAN" value="US00000000000000000002"></div>
+        <div><label class="comms-label">Amount</label><input class="comms-input" id="p8Amount" value="1000.00"></div>
+        <div><label class="comms-label">Currency</label><input class="comms-input" id="p8Ccy" value="USD"></div>
+        <div><label class="comms-label">EndToEndId</label><input class="comms-input" id="p8E2EId" placeholder="auto-UUID"></div>
+        <div><label class="comms-label">UETR</label><input class="comms-input" id="p8UETR" placeholder="auto-UUID"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <button class="comms-btn" onclick="pacs008Generate()">Generate XML</button>
+        <button class="comms-btn" onclick="pacs008Copy()">Copy XML</button>
+        <button class="comms-btn blue" onclick="pacs008Send()">Send as POST</button>
+      </div>
+      <textarea class="xml-area" id="p8XML" rows="8" placeholder="Generated XML will appear here…"></textarea>`;
+    case 'NACHA': return `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div><label class="comms-label">Immediate Destination</label><input class="comms-input" id="nachaDest" value="021000021" maxlength="9"></div>
+        <div><label class="comms-label">Immediate Origin</label><input class="comms-input" id="nachaOrigin" value="123456789" maxlength="9"></div>
+        <div><label class="comms-label">Company Name</label><input class="comms-input" id="nachaCoName" value="SF EMERALD DYNASTY" maxlength="16"></div>
+        <div><label class="comms-label">Company ID</label><input class="comms-input" id="nachaCoId" value="1234567890" maxlength="10"></div>
+        <div><label class="comms-label">SEC Code</label>
+          <select class="comms-input" id="nachaSEC"><option>PPD</option><option>CCD</option><option>WEB</option></select>
+        </div>
+        <div><label class="comms-label">Amount (USD)</label><input class="comms-input" id="nachaAmount" value="1000.00"></div>
+        <div><label class="comms-label">Receiving Routing</label><input class="comms-input" id="nachaRtg" value="021000021" maxlength="9"></div>
+        <div><label class="comms-label">DFI Account</label><input class="comms-input" id="nachaDFI" value="123456789012345" maxlength="17"></div>
+        <div><label class="comms-label">Individual Name</label><input class="comms-input" id="nachaIndName" value="DAO TREASURY" maxlength="22"></div>
+        <div><label class="comms-label">Individual ID</label><input class="comms-input" id="nachaIndId" value="SFETREAS001" maxlength="15"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <button class="comms-btn" onclick="nachaGenerate()">Generate NACHA</button>
+        <button class="comms-btn" onclick="nachaCopy()">Copy</button>
+        <button class="comms-btn" onclick="nachaDownload()">Download .ach</button>
+        <button class="comms-btn blue" onclick="nachaSend()">Send as POST</button>
+      </div>
+      <textarea class="xml-area" id="nachaOutput" rows="6" placeholder="Generated NACHA file will appear here…" style="color:#00bcd4"></textarea>`;
+    case 'SFTPGo': return `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+        <div><label class="comms-label">Host</label><input class="comms-input" id="sftpHost" placeholder="sftpgo.example.com"></div>
+        <div><label class="comms-label">Port</label><input class="comms-input" id="sftpPort" value="8080"></div>
+        <div><label class="comms-label">Bearer Token</label><input class="comms-input" id="sftpToken" type="password" placeholder="token…"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <button class="comms-btn green" onclick="sftpConnect()">Connect</button>
+        <button class="comms-btn" onclick="sftpListFiles()">List Files</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+        <input type="file" id="sftpFile" class="comms-input" style="flex:1">
+        <button class="comms-btn blue" onclick="sftpUpload()">Upload</button>
+      </div>
+      <button class="comms-btn red" onclick="sftpClearLog()">Clear Log</button>
+      <div class="log-pane" id="sftpLog"></div>`;
+    case 'Python': return `
+      <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+        <select class="comms-input" id="pyTemplate" style="flex:1" onchange="pyLoadTemplate()">
+          <option value="balance">Stellar Balance Check</option>
+          <option value="payments">Stellar Payments</option>
+          <option value="custom">Custom Script</option>
+        </select>
+        <button class="comms-btn green" onclick="pyRun()">▶ Run</button>
+        <button class="comms-btn red" onclick="pyClear()">Clear</button>
+      </div>
+      <textarea class="xml-area" id="pyCode" rows="8" style="color:#e0e0e0"></textarea>
+      <div class="log-pane" id="pyOutput" style="color:#00ff88;margin-top:6px;min-height:60px"></div>`;
+    default: return '<div style="color:#555;padding:20px">Coming soon</div>';
   }
-  const respEl=document.getElementById('http-response');
-  respEl.style.display='block';
-  document.getElementById('http-resp-body').textContent='Sending...';
+}
+
+function toggleComms(){
+  const p=document.getElementById('agentCommsPanel');
+  p.classList.toggle('open');
+}
+
+// HTTP Tab
+async function httpSend(){
+  const method=document.getElementById('httpMethod').value;
+  const url=resolveVars(document.getElementById('httpUrl').value.trim());
+  const headersRaw=document.getElementById('httpHeaders').value.trim();
+  const body=document.getElementById('httpBody').value.trim();
+  if(!url)return;
+  const headers={};
+  headersRaw.split('\n').forEach(l=>{const i=l.indexOf(':');if(i>0)headers[l.slice(0,i).trim()]=l.slice(i+1).trim();});
+  const opts={method,headers};
+  if(body&&method!=='GET')opts.body=body;
   const t0=Date.now();
+  const statusEl=document.getElementById('httpStatus');
+  const respEl=document.getElementById('httpResponse');
+  statusEl.textContent='Sending…';
   try{
     const r=await fetch(url,opts);
     const ms=Date.now()-t0;
     const text=await r.text();
-    lastRespRaw=text;
-    const badge=document.getElementById('http-status-badge');
-    badge.textContent=r.status+' '+r.statusText;
-    badge.className='status-badge '+(r.status<300?'s2xx':r.status<500?'s4xx':'s5xx');
-    document.getElementById('http-time').textContent=ms+'ms';
-    document.getElementById('http-size').textContent=(new Blob([text]).size/1024).toFixed(1)+'KB';
-    switchRespView(currentRespMode);
-    // history
-    const entry={method,url,headers,body:bodyEl.value,response:text,status:r.status};
-    httpHistory.unshift(entry);if(httpHistory.length>10)httpHistory.pop();
-    const sel=document.getElementById('http-history');
-    sel.innerHTML='<option value="">— History (last 10) —</option>'+
-      httpHistory.map((e,i)=>`<option value="${i}">${e.method} ${e.url.slice(0,40)}</option>`).join('');
+    let display=text;
+    try{display=JSON.stringify(JSON.parse(text),null,2);}catch(e){}
+    const cls=r.status<300?'status-2xx':r.status<500?'status-4xx':'status-5xx';
+    statusEl.innerHTML=`<span class="status-badge ${cls}">${r.status}</span> ${ms}ms`;
+    respEl.textContent=display;
+    httpHistory.unshift({method,url,status:r.status,ms,body:display,ts:new Date().toISOString()});
+    if(httpHistory.length>10)httpHistory.pop();
   }catch(e){
-    lastRespRaw='Error: '+e.message;
-    document.getElementById('http-resp-body').textContent=lastRespRaw;
-    document.getElementById('http-status-badge').textContent='Error';
-    document.getElementById('http-status-badge').className='status-badge s5xx';
+    statusEl.innerHTML=`<span class="status-badge status-5xx">ERR</span>`;
+    respEl.textContent='Error: '+e.message;
   }
 }
-function restoreHistory(idx){
-  if(idx==='')return;
-  const e=httpHistory[parseInt(idx)];
-  if(!e)return;
-  document.getElementById('http-method').value=e.method;
-  document.getElementById('http-url').value=e.url;
-  document.getElementById('http-body').value=e.body||'';
-  toggleBodyTab();
+
+function showHttpHistory(){
+  const respEl=document.getElementById('httpResponse');
+  if(!httpHistory.length){respEl.textContent='No history yet.';return;}
+  respEl.textContent=httpHistory.map((h,i)=>`[${i+1}] ${h.method} ${h.url} → ${h.status} (${h.ms}ms) @ ${h.ts}`).join('\n');
 }
 
-// WEBSOCKET TAB
-let wsConn=null;
+// WebSocket Tab
 function wsLog(msg,cls){
-  const log=document.getElementById('ws-log');
+  const log=document.getElementById('wsLog');
+  if(!log)return;
   const d=document.createElement('div');
-  d.className=cls;
-  d.textContent='['+new Date().toLocaleTimeString()+'] '+msg;
+  d.className=cls;d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
   log.appendChild(d);log.scrollTop=log.scrollHeight;
 }
-function wsConnect(){
-  const url=document.getElementById('ws-url').value.trim();
+function wsToggle(){
+  if(wsConn&&wsConn.readyState<2){wsConn.close();return;}
+  const url=document.getElementById('wsUrl').value.trim();
   if(!url)return;
-  if(wsConn){wsConn.close();wsConn=null;document.getElementById('ws-connect-btn').textContent='Connect';document.getElementById('ws-msg').disabled=true;document.getElementById('ws-send-btn').disabled=true;return;}
-  wsLog('Connecting to '+url,'ws-info');
   try{
     wsConn=new WebSocket(url);
-    wsConn.onopen=()=>{wsLog('Connected','ws-info');document.getElementById('ws-connect-btn').textContent='Disconnect';document.getElementById('ws-msg').disabled=false;document.getElementById('ws-send-btn').disabled=false;};
-    wsConn.onmessage=e=>{wsLog('← '+e.data.slice(0,200),'ws-recv');};
-    wsConn.onerror=e=>{wsLog('Error','ws-err');};
-    wsConn.onclose=()=>{wsLog('Disconnected','ws-info');wsConn=null;document.getElementById('ws-connect-btn').textContent='Connect';document.getElementById('ws-msg').disabled=true;document.getElementById('ws-send-btn').disabled=true;};
-  }catch(e){wsLog('Failed: '+e.message,'ws-err');}
+    wsConn.onopen=()=>{wsLog('Connected to '+url,'log-info');document.getElementById('wsConnBtn').textContent='Disconnect';};
+    wsConn.onmessage=e=>wsLog('← '+e.data,'log-recv');
+    wsConn.onerror=e=>wsLog('Error: '+e.message,'log-err');
+    wsConn.onclose=()=>{wsLog('Disconnected','log-err');document.getElementById('wsConnBtn').textContent='Connect';};
+  }catch(e){wsLog('Error: '+e.message,'log-err');}
 }
 function wsSend(){
-  const msg=document.getElementById('ws-msg').value;
-  if(!wsConn||!msg)return;
-  wsConn.send(msg);wsLog('→ '+msg,'ws-sent');
+  const msg=document.getElementById('wsMsg').value;
+  if(!wsConn||wsConn.readyState!==1)return wsLog('Not connected','log-err');
+  wsConn.send(msg);wsLog('→ '+msg,'log-sent');
 }
+function wsClear(){const l=document.getElementById('wsLog');if(l)l.innerHTML='';}
 
-// SSE TAB
-let sseSource=null;
-function sseLog(type,data){
-  const log=document.getElementById('sse-log');
-  const d=document.createElement('div');d.className='sse-event';
-  d.innerHTML=`<span style="color:#555;font-size:.7em">${new Date().toLocaleTimeString()}</span> <span class="sse-type">${type}</span><span style="color:#e0e0e0">${data.slice(0,300)}</span>`;
+// SSE Tab
+function sseLog(msg,cls){
+  const log=document.getElementById('sseLog');
+  if(!log)return;
+  const d=document.createElement('div');
+  d.className=cls||'log-info';d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
   log.appendChild(d);log.scrollTop=log.scrollHeight;
 }
 function sseToggle(){
-  const btn=document.getElementById('sse-btn');
-  if(sseSource){sseSource.close();sseSource=null;btn.textContent='Start';return;}
-  const url=document.getElementById('sse-url').value.trim();
+  if(sseSource){sseSource.close();sseSource=null;document.getElementById('sseBtn').textContent='Start';sseLog('Stopped','log-err');return;}
+  const url=document.getElementById('sseUrl').value.trim();
   if(!url)return;
   sseSource=new EventSource(url);
-  sseSource.onmessage=e=>sseLog('message',e.data);
-  sseSource.onerror=()=>sseLog('error','Connection error');
-  sseSource.onopen=()=>sseLog('open','Connected');
-  btn.textContent='Stop';
+  sseSource.onopen=()=>{sseLog('Connected','log-info');document.getElementById('sseBtn').textContent='Stop';};
+  sseSource.onmessage=e=>sseLog('data: '+e.data,'log-recv');
+  sseSource.onerror=()=>sseLog('Error / reconnecting…','log-err');
 }
+function sseClear(){const l=document.getElementById('sseLog');if(l)l.innerHTML='';}
 
-// STELLAR TAB
-const STELLAR_REQUESTS=[
-  {name:'DAO Treasury Balances',url:'https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW'},
-  {name:'DAO Treasury Payments',url:'https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW/payments?limit=5&order=desc'},
-  {name:'SFETREAS Orderbook',url:'https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP'},
-  {name:'Stellar Fee Stats',url:'https://horizon.stellar.org/fee_stats'},
-  {name:'MoneyGram TOML',url:'https://extstellar.moneygram.com/.well-known/stellar.toml'},
-  {name:'SFE stellar.toml',url:'https://sfe-dynasty.github.io/.well-known/stellar.toml'}
-];
+// Stellar Tab
+const STELLAR_REQUESTS={
+  '1':{method:'GET',url:'https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW'},
+  '2':{method:'GET',url:'https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW/payments?limit=5&order=desc'},
+  '3':{method:'GET',url:'https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP'},
+  '4':{method:'GET',url:'https://horizon.stellar.org/fee_stats'},
+  '5':{method:'GET',url:'https://extstellar.moneygram.com/.well-known/stellar.toml'},
+  '6':{method:'GET',url:'https://sfe-dynasty.github.io/.well-known/stellar.toml'}
+};
 function stellarLoad(){
-  const idx=parseInt(document.getElementById('stellar-select').value);
-  const req=STELLAR_REQUESTS[idx];
-  document.getElementById('http-url').value=req.url;
-  document.getElementById('http-method').value='GET';
-  switchCommsTab('http');
+  const v=document.getElementById('stellarReq').value;
+  const req=STELLAR_REQUESTS[v];
+  if(req)document.getElementById('stellarUrl').value=req.url;
 }
 async function stellarQuickFire(){
-  const idx=parseInt(document.getElementById('stellar-select').value);
-  const req=STELLAR_REQUESTS[idx];
-  const el=document.getElementById('stellar-result');
-  el.style.display='block';el.textContent='Loading...';
+  const v=document.getElementById('stellarReq').value;
+  const req=STELLAR_REQUESTS[v];
+  if(!req)return;
+  document.getElementById('stellarUrl').value=req.url;
+  const statusEl=document.getElementById('stellarStatus');
+  const respEl=document.getElementById('stellarResponse');
+  statusEl.textContent='Firing…';
   try{
+    const t0=Date.now();
     const r=await fetch(req.url);
+    const ms=Date.now()-t0;
     const text=await r.text();
-    try{
-      const json=JSON.parse(text);
-      el.innerHTML=`<div class="pretty-json">${syntaxHighlight(json)}</div>`;
-      if(idx===0&&json.balances)updateBalances(json.balances);
-    }catch(e){el.textContent=text;}
-  }catch(e){el.textContent='Error: '+e.message;}
+    let display=text;
+    try{display=JSON.stringify(JSON.parse(text),null,2);}catch(e){}
+    statusEl.innerHTML=`<span class="status-badge ${r.status<300?'status-2xx':'status-4xx'}">${r.status}</span> ${ms}ms`;
+    respEl.textContent=display;
+    // If DAO Treasury Balances, update dashboard
+    if(v==='1'){
+      try{
+        const d=JSON.parse(text);
+        if(d.balances){
+          d.balances.forEach(b=>{
+            let key='';
+            if(b.asset_type==='native')key='XLM';
+            else if(b.asset_code==='SFETREAS'&&b.asset_issuer===SFETREAS_ISSUER)key='SFETREAS';
+            else if(b.asset_code==='USDC'&&b.asset_issuer===USDC_ISSUER)key='USDC';
+            else if(b.asset_code==='SFE2025PTN')key='SFE2025PTN';
+            else if(b.asset_code==='SFE2025PSCI')key='SFE2025PSCI';
+            if(key){
+              const val=parseFloat(b.balance).toFixed(4);
+              balances[key]=val;
+              const el=document.getElementById('bal-'+key);
+              if(el)el.textContent=parseFloat(val).toLocaleString('en-US',{minimumFractionDigits:4});
+              flashTicker(key);
+            }
+          });
+          updateUsdValues();
+        }
+      }catch(e){}
+    }
+  }catch(e){
+    statusEl.innerHTML=`<span class="status-badge status-5xx">ERR</span>`;
+    respEl.textContent='Error: '+e.message;
+  }
 }
 
-// pacs.008
-function uuid4(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:r&0x3|0x8).toString(16);});}
-function initPacs(){
-  document.getElementById('pacs-msgid').value='MSG-'+uuid4();
-  document.getElementById('pacs-crdttm').value=new Date().toISOString();
-  document.getElementById('pacs-e2e').value='E2E-'+uuid4();
-  document.getElementById('pacs-uetr').value=uuid4();
+// ENV Tab
+function renderEnvTable(){
+  const t=document.getElementById('envTable');
+  if(!t)return;
+  t.innerHTML=Object.entries(envVars).map(([k,v])=>`
+    <tr>
+      <td class="env-key">${k}</td>
+      <td><input class="env-val-input" data-key="${k}" value="${v}" onchange="envUpdate(this)"></td>
+      <td><button class="comms-btn red" style="padding:2px 6px;font-size:10px" onclick="envDelete('${k}')">✕</button></td>
+    </tr>`).join('')+`
+    <tr>
+      <td><input class="env-val-input" id="envNewKey" placeholder="new key"></td>
+      <td><input class="env-val-input" id="envNewVal" placeholder="value"></td>
+      <td><button class="comms-btn" style="padding:2px 6px;font-size:10px" onclick="envAdd()">+</button></td>
+    </tr>`;
 }
-initPacs();
-function generatePacs(){
-  const v=id=>document.getElementById(id).value;
+function envUpdate(el){envVars[el.dataset.key]=el.value;}
+function envDelete(k){delete envVars[k];renderEnvTable();}
+function envAdd(){
+  const k=document.getElementById('envNewKey').value.trim();
+  const v=document.getElementById('envNewVal').value;
+  if(k){envVars[k]=v;renderEnvTable();}
+}
+function envSave(){saveEnv();const t=document.getElementById('envTable');if(t){const s=document.createElement('div');s.style.cssText='color:#00ff88;font-size:10px;padding:4px';s.textContent='✓ Saved';t.parentNode.insertBefore(s,t);setTimeout(()=>s.remove(),2000);}}
+function envExport(){
+  const blob=new Blob([JSON.stringify(envVars,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dao_env.json';a.click();
+}
+function envImportClick(){document.getElementById('envImportFile').click();}
+function envImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{try{envVars={...JSON.parse(ev.target.result)};saveEnv();renderEnvTable();}catch(e){alert('Invalid JSON');}};
+  r.readAsText(f);
+}
+
+// pacs.008 Tab
+function uuid4(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);});}
+function pacs008Generate(){
+  const msgId=document.getElementById('p8MsgId').value||uuid4();
+  const creDtTm=document.getElementById('p8CreDtTm').value||new Date().toISOString().slice(0,19);
+  const nbOfTxs=document.getElementById('p8NbOfTxs').value||'1';
+  const ctrlSum=document.getElementById('p8CtrlSum').value||'1000.00';
+  const debtorName=document.getElementById('p8DebtorName').value;
+  const debtorIBAN=document.getElementById('p8DebtorIBAN').value;
+  const creditorName=document.getElementById('p8CreditorName').value;
+  const creditorIBAN=document.getElementById('p8CreditorIBAN').value;
+  const amount=document.getElementById('p8Amount').value;
+  const ccy=document.getElementById('p8Ccy').value||'USD';
+  const e2eId=document.getElementById('p8E2EId').value||uuid4();
+  const uetr=document.getElementById('p8UETR').value||uuid4();
   const xml=`<?xml version="1.0" encoding="UTF-8"?>
 <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
   <FIToFICstmrCdtTrf>
     <GrpHdr>
-      <MsgId>${v('pacs-msgid')}</MsgId>
-      <CreDtTm>${v('pacs-crdttm')}</CreDtTm>
-      <NbOfTxs>${v('pacs-nbtxs')}</NbOfTxs>
-      <CtrlSum>${v('pacs-ctrlsum')}</CtrlSum>
-      <SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf>
+      <MsgId>${msgId}</MsgId>
+      <CreDtTm>${creDtTm}</CreDtTm>
+      <NbOfTxs>${nbOfTxs}</NbOfTxs>
+      <CtrlSum>${ctrlSum}</CtrlSum>
+      <SttlmInf>
+        <SttlmMtd>CLRG</SttlmMtd>
+      </SttlmInf>
     </GrpHdr>
     <CdtTrfTxInf>
       <PmtId>
-        <EndToEndId>${v('pacs-e2e')}</EndToEndId>
-        <UETR>${v('pacs-uetr')}</UETR>
+        <EndToEndId>${e2eId}</EndToEndId>
+        <UETR>${uetr}</UETR>
       </PmtId>
-      <IntrBkSttlmAmt Ccy="${v('pacs-ccy')}">${v('pacs-amt')}</IntrBkSttlmAmt>
-      <Dbtr><Nm>${v('pacs-dname')}</Nm></Dbtr>
-      <DbtrAcct><Id><IBAN>${v('pacs-diban')}</IBAN></Id></DbtrAcct>
-      <Cdtr><Nm>${v('pacs-cname')}</Nm></Cdtr>
-      <CdtrAcct><Id><IBAN>${v('pacs-ciban')}</IBAN></Id></CdtrAcct>
+      <IntrBkSttlmAmt Ccy="${ccy}">${amount}</IntrBkSttlmAmt>
+      <Dbtr>
+        <Nm>${debtorName}</Nm>
+      </Dbtr>
+      <DbtrAcct>
+        <Id><IBAN>${debtorIBAN}</IBAN></Id>
+      </DbtrAcct>
+      <Cdtr>
+        <Nm>${creditorName}</Nm>
+      </Cdtr>
+      <CdtrAcct>
+        <Id><IBAN>${creditorIBAN}</IBAN></Id>
+      </CdtrAcct>
     </CdtTrfTxInf>
   </FIToFICstmrCdtTrf>
 </Document>`;
-  document.getElementById('pacs-xml').value=xml;
+  document.getElementById('p8XML').value=xml;
 }
-function copyPacsXml(){navigator.clipboard.writeText(document.getElementById('pacs-xml').value).catch(()=>{});}
-function sendPacsPost(){
-  const xml=document.getElementById('pacs-xml').value;
-  document.getElementById('http-method').value='POST';
-  document.getElementById('http-body').value=xml;
-  // set content-type header
-  const rows=document.querySelectorAll('#headers-table tr');
-  let found=false;
-  rows.forEach(r=>{const k=r.querySelector('.hdr-key');if(k&&k.value==='Content-Type'){r.querySelector('.hdr-val').value='application/xml';found=true;}});
-  if(!found){addHeaderRow();const last=document.querySelectorAll('#headers-table tr');last[last.length-1].querySelector('.hdr-key').value='Content-Type';last[last.length-1].querySelector('.hdr-val').value='application/xml';}
-  switchCommsTab('http');switchSubTab('body');
+function pacs008Copy(){navigator.clipboard.writeText(document.getElementById('p8XML').value).catch(()=>{});}
+async function pacs008Send(){
+  const xml=document.getElementById('p8XML').value;
+  if(!xml)return;
+  const url=resolveVars('{{clearing_engine}}/pacs008');
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/xml'},body:xml});
+    alert('Response: '+r.status+' '+r.statusText);
+  }catch(e){alert('Error: '+e.message);}
 }
 
-// NACHA
+// NACHA Tab
 function pad(s,n,c=' ',right=false){s=String(s);while(s.length<n)s=right?s+c:c+s;return s.slice(0,n);}
-function generateNacha(){
-  const dest=pad(document.getElementById('nacha-dest').value||'0123456789',10);
-  const orig=pad(document.getElementById('nacha-orig').value||'1234567890',10);
-  const cname=pad(document.getElementById('nacha-cname').value||'SF EMERALD DYNASTY',23,' ',true);
-  const cid=pad(document.getElementById('nacha-cid').value||'1234567890',10,' ',true);
-  const sec=document.getElementById('nacha-sec').value;
-  const amtRaw=parseFloat(document.getElementById('nacha-amt').value||'0');
+function nachaGenerate(){
+  const dest=pad(document.getElementById('nachaDest').value,9);
+  const origin=pad(document.getElementById('nachaOrigin').value,9);
+  const coName=pad(document.getElementById('nachaCoName').value,16,' ',true);
+  const coId=pad(document.getElementById('nachaCoId').value,10,' ',true);
+  const sec=document.getElementById('nachaSEC').value;
+  const amtRaw=parseFloat(document.getElementById('nachaAmount').value)||0;
   const amtCents=pad(Math.round(amtRaw*100),10,'0');
-  const rrouting=document.getElementById('nacha-rrouting').value||'021000021';
-  const dfi=pad(document.getElementById('nacha-dfi').value||'123456789012345678',17,' ',true);
-  const iname=pad(document.getElementById('nacha-iname').value||'JOHN DOE',22,' ',true);
-  const iid=pad(document.getElementById('nacha-iid').value||'ID001',15,' ',true);
+  const rtg=pad(document.getElementById('nachaRtg').value,9);
+  const dfi=pad(document.getElementById('nachaDFI').value,17,' ',true);
+  const indName=pad(document.getElementById('nachaIndName').value,22,' ',true);
+  const indId=pad(document.getElementById('nachaIndId').value,15,' ',true);
   const now=new Date();
   const yy=String(now.getFullYear()).slice(2);
-  const mm=String(now.getMonth()+1).padStart(2,'0');
-  const dd=String(now.getDate()).padStart(2,'0');
-  const hhmm=String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+  const mm=pad(now.getMonth()+1,2,'0');
+  const dd=pad(now.getDate(),2,'0');
+  const hh=pad(now.getHours(),2,'0');
+  const mi=pad(now.getMinutes(),2,'0');
   const fileDate=yy+mm+dd;
-  // Record 1 - File Header
-  const r1='1'+pad(dest,10)+pad(orig,10)+fileDate+hhmm+'A094101'+pad('',23,' ',true)+pad('',8,' ',true)+'1';
-  // Record 5 - Batch Header
-  const r5='5220'+cname+cid+sec+pad('',10,' ',true)+pad('',3,' ',true)+fileDate+pad('',3,' ',true)+'1'+pad(rrouting.slice(0,8),8)+pad('0000001',7,'0');
-  // Record 6 - Entry Detail
-  const checkDigit=rrouting.slice(8,9)||'0';
-  const r6='622'+rrouting.slice(0,8)+checkDigit+dfi+amtCents+iid+iname+'  0'+pad('0000001',7,'0');
-  // Record 8 - Batch Control
-  const r8='8220'+pad('1',6,'0')+pad(rrouting.slice(0,8),8)+pad('0',12,'0')+pad(amtCents,12,'0')+pad('',39,' ',true)+pad(rrouting.slice(0,8),8)+pad('0000001',7,'0');
-  // Record 9 - File Control
-  const r9='9'+pad('1',6,'0')+pad('1',8,'0')+pad('1',10,'0')+pad(amtCents,12,'0')+pad('',39,' ',true);
-  document.getElementById('nacha-output').value=[r1,r5,r6,r8,r9].join('\n');
+  const fileTime=hh+mi;
+  // Record 1 — File Header
+  const r1='1'+pad(dest,10)+pad(origin,10)+fileDate+fileTime+'A094101'+pad('SFETREAS',23,' ',true)+pad('DAO TREASURY',23,' ',true)+'        ';
+  // Record 5 — Batch Header
+  const r5='5220'+coName+coId+sec+pad('DAO TREASURY PAYMENT',10,' ',true)+pad('',3)+fileDate+'   1'+pad(rtg.slice(0,8),8)+'0000001';
+  // Record 6 — Entry Detail
+  const r6='622'+rtg.slice(0,8)+pad(rtg[8]||'0',1)+dfi+amtCents+indId+indName+'  0'+pad(rtg.slice(0,8),8)+'00000010000001';
+  // Record 8 — Batch Control
+  const entryHash=pad(rtg.slice(0,8),10,'0');
+  const r8='820000010'+entryHash+pad('000000000000',12,'0')+amtCents+pad('',39,' ',true)+pad(rtg.slice(0,8),8)+'0000001';
+  // Record 9 — File Control
+  const r9='9000001000001'+pad('0000000'+rtg.slice(0,8),10,'0')+pad('000000000000',12,'0')+amtCents+pad('',39,' ',true);
+  const lines=[r1,r5,r6,r8,r9];
+  // Pad to 94 chars each
+  const out=lines.map(l=>pad(l,94,' ',true)).join('\n');
+  document.getElementById('nachaOutput').value=out;
 }
-function copyNacha(){navigator.clipboard.writeText(document.getElementById('nacha-output').value).catch(()=>{});}
-function downloadNacha(){
-  const blob=new Blob([document.getElementById('nacha-output').value],{type:'text/plain'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nacha.ach';a.click();
+function nachaCopy(){navigator.clipboard.writeText(document.getElementById('nachaOutput').value).catch(()=>{});}
+function nachaDownload(){
+  const blob=new Blob([document.getElementById('nachaOutput').value],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dao_treasury.ach';a.click();
 }
-function sendNachaPost(){
-  document.getElementById('http-method').value='POST';
-  document.getElementById('http-body').value=document.getElementById('nacha-output').value;
-  switchCommsTab('http');switchSubTab('body');
+async function nachaSend(){
+  const body=document.getElementById('nachaOutput').value;
+  if(!body)return;
+  const url=resolveVars('{{clearing_engine}}/nacha');
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body});
+    alert('Response: '+r.status+' '+r.statusText);
+  }catch(e){alert('Error: '+e.message);}
 }
 
-// SFTPGo
-function sftpLog(msg){
-  const log=document.getElementById('sftp-log');
-  log.innerHTML+=`<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
-  log.scrollTop=log.scrollHeight;
-}
-function sftpBase(){
-  const h=resolveVars(document.getElementById('sftp-host').value.trim());
-  const p=document.getElementById('sftp-port').value;
-  return h||(p?'http://localhost:'+p:'');
-}
-function sftpHeaders(){
-  const t=resolveVars(document.getElementById('sftp-token').value.trim());
-  return t?{Authorization:'Bearer '+t}:{};
+// SFTPGo Tab
+function sftpLog(msg,cls){
+  const log=document.getElementById('sftpLog');
+  if(!log)return;
+  const d=document.createElement('div');
+  d.className=cls||'log-info';d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
+  log.appendChild(d);log.scrollTop=log.scrollHeight;
 }
 async function sftpConnect(){
-  const base=sftpBase();if(!base)return;
-  sftpLog('Connecting to '+base+'...');
+  const host=document.getElementById('sftpHost').value.trim();
+  const port=document.getElementById('sftpPort').value.trim()||'8080';
+  const token=document.getElementById('sftpToken').value.trim();
+  if(!host)return sftpLog('Host required','log-err');
+  const url=`http://${host}:${port}/api/v2/version`;
   try{
-    const r=await fetch(base+'/api/v2/version',{headers:sftpHeaders()});
-    const d=await r.json();
-    sftpLog('Connected: SFTPGo v'+(d.version||'?'));
-  }catch(e){sftpLog('Error: '+e.message);}
+    const headers=token?{Authorization:'Bearer '+token}:{};
+    const r=await fetch(url,{headers});
+    const text=await r.text();
+    sftpLog('Connected: '+r.status+' '+text.slice(0,100),'log-recv');
+  }catch(e){sftpLog('Error: '+e.message,'log-err');}
 }
 async function sftpListFiles(){
-  const base=sftpBase();if(!base)return;
-  sftpLog('Listing /...');
+  const host=document.getElementById('sftpHost').value.trim();
+  const port=document.getElementById('sftpPort').value.trim()||'8080';
+  const token=document.getElementById('sftpToken').value.trim();
+  if(!host)return sftpLog('Host required','log-err');
+  const url=`http://${host}:${port}/api/v2/user/files?path=/`;
   try{
-    const r=await fetch(base+'/api/v2/user/files?path=/',{headers:sftpHeaders()});
-    const d=await r.json();
-    const files=Array.isArray(d)?d:[];
-    document.getElementById('sftp-files').innerHTML=files.map(f=>`<div style="font-size:.75em;padding:2px 0;color:#00bcd4">${f.name||f}</div>`).join('')||'<div style="color:#555;font-size:.75em">No files</div>';
-    sftpLog('Listed '+files.length+' items');
-  }catch(e){sftpLog('Error: '+e.message);}
+    const headers=token?{Authorization:'Bearer '+token}:{};
+    const r=await fetch(url,{headers});
+    const text=await r.text();
+    sftpLog('Files: '+text.slice(0,200),'log-recv');
+  }catch(e){sftpLog('Error: '+e.message,'log-err');}
 }
 async function sftpUpload(){
-  const base=sftpBase();if(!base)return;
-  const file=document.getElementById('sftp-file').files[0];
-  if(!file){sftpLog('No file selected');return;}
-  sftpLog('Uploading '+file.name+'...');
+  const host=document.getElementById('sftpHost').value.trim();
+  const port=document.getElementById('sftpPort').value.trim()||'8080';
+  const token=document.getElementById('sftpToken').value.trim();
+  const fileInput=document.getElementById('sftpFile');
+  if(!host)return sftpLog('Host required','log-err');
+  if(!fileInput.files.length)return sftpLog('No file selected','log-err');
+  const file=fileInput.files[0];
+  const url=`http://${host}:${port}/api/v2/user/files?path=/${file.name}`;
   try{
-    const fd=new FormData();fd.append('filenames',file,file.name);
-    const r=await fetch(base+'/api/v2/user/files/uploads?path=/',{method:'POST',headers:sftpHeaders(),body:fd});
-    sftpLog('Upload response: '+r.status);
-  }catch(e){sftpLog('Error: '+e.message);}
+    const headers={'Content-Type':'application/octet-stream'};
+    if(token)headers['Authorization']='Bearer '+token;
+    const r=await fetch(url,{method:'POST',headers,body:file});
+    sftpLog('Upload: '+r.status+' '+file.name,'log-recv');
+  }catch(e){sftpLog('Error: '+e.message,'log-err');}
 }
+function sftpClearLog(){const l=document.getElementById('sftpLog');if(l)l.innerHTML='';}
 
-// PYTHON
+// Python Tab
 const PY_TEMPLATES={
-  balance:`import pyodide.http, json
-resp = await pyodide.http.pyfetch("https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW")
-data = await resp.json()
-balances = data.get("balances", [])
-for b in balances:
+  balance:`import pyodide_http
+pyodide_http.patch_all()
+import urllib.request, json
+
+url = "https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW"
+with urllib.request.urlopen(url) as r:
+    data = json.loads(r.read())
+
+for b in data.get("balances", []):
     code = b.get("asset_code", "XLM")
     print(f"{code}: {b['balance']}")`,
-  uuid:`import uuid
-for i in range(5):
-    print(str(uuid.uuid4()))`,
-  hmac:`import hmac, hashlib, base64
-key = b"secret-key"
-msg = b"SF Emerald Dynasty DAO Treasury"
-sig = hmac.new(key, msg, hashlib.sha256).digest()
-print("HMAC-SHA256:", base64.b64encode(sig).decode())`
-};
-function loadPyTemplate(){
-  const t=document.getElementById('py-template').value;
-  document.getElementById('py-code').value=PY_TEMPLATES[t]||'';
-}
-loadPyTemplate();
-let pyodideInstance=null;
-async function runPython(){
-  const code=document.getElementById('py-code').value;
-  const out=document.getElementById('py-output');
-  const status=document.getElementById('py-status');
-  out.innerHTML='';
-  if(!pyodideInstance){
-    status.textContent='Loading Python runtime...';
-    try{
-      await new Promise((res,rej)=>{
-        const s=document.createElement('script');
-        s.src='https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js';
-        s.onload=res;s.onerror=rej;document.head.appendChild(s);
-      });
-      pyodideInstance=await loadPyodide({stdout:t=>{out.innerHTML+=t+'\n';},stderr:t=>{out.innerHTML+=`<span style="color:#ff4444">${t}</span>\n`;}});
-      status.textContent='Python ready';
-    }catch(e){status.textContent='Failed to load Pyodide: '+e.message;return;}
-  }
-  status.textContent='Running...';
-  try{
-    await pyodideInstance.runPythonAsync(code);
-    status.textContent='Done';
-  }catch(e){out.innerHTML+=`<span style="color:#ff4444">Error: ${e.message}</span>`;status.textContent='Error';}
-}
+  payments:`import pyodide_http
+pyodide_http.patch_all()
+import urllib.request, json
 
-// ===== AI AGENT =====
-let aiOpen=false;let aiEngine=null;let aiLoaded=false;let aiLoading=false;
-const AI_SYSTEM="You are the DAO Treasury AI agent for SF Emerald Dynasty Trust (US-SFE-PFIA-2025-T1A01). You assist with the Stellar-based DAO Treasury wallet GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW, SFETREAS custom asset (issuer GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP), ISO 20022 pacs.008 payments, NACHA ACH files, SFTPGo transfers, MoneyGram SEP-6 anchor pipeline, and CLOB settlement. Answer concisely and accurately.";
-let aiMessages=[{role:'system',content:AI_SYSTEM}];
+url = "https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW/payments?limit=5&order=desc"
+with urllib.request.urlopen(url) as r:
+    data = json.loads(r.read())
+
+for tx in data["_embedded"]["records"]:
+    print(tx.get("type"), tx.get("amount","—"), tx.get("asset_code","XLM"))`,
+  custom:`# Write your Python code here
+print("Hello from Pyodide!")
+print(1 + 1)`
+};
+function pyLoadTemplate(){
+  const t=document.getElementById('pyTemplate').value;
+  const code=document.getElementById('pyCode');
+  if(code)code.value=PY_TEMPLATES[t]||'';
+}
+async function pyRun(){
+  const code=document.getElementById('pyCode').value;
+  const out=document.getElementById('pyOutput');
+  if(!out)return;
+  out.textContent='Loading Pyodide…';
+  if(!pyodideInstance&&!pyodideLoading){
+    pyodideLoading=true;
+    try{
+      if(!window.loadPyodide){
+        await new Promise((res,rej)=>{
+          const s=document.createElement('script');
+          s.src='https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js';
+          s.onload=res;s.onerror=rej;document.head.appendChild(s);
+        });
+      }
+      pyodideInstance=await window.loadPyodide();
+      await pyodideInstance.loadPackage(['micropip']);
+      await pyodideInstance.runPythonAsync(`import micropip; await micropip.install('pyodide-http')`);
+    }catch(e){out.textContent='Error loading Pyodide: '+e.message;pyodideLoading=false;return;}
+    pyodideLoading=false;
+  }
+  if(!pyodideInstance){out.textContent='Pyodide not ready yet, try again.';return;}
+  try{
+    let logs=[];
+    pyodideInstance.globals.set('print',(...args)=>logs.push(args.join(' ')));
+    await pyodideInstance.runPythonAsync(code);
+    out.textContent=logs.join('\n')||'(no output)';
+  }catch(e){out.textContent='Error: '+e.message;}
+}
+function pyClear(){const o=document.getElementById('pyOutput');if(o)o.textContent='';}
+
+// Init comms UI
+buildCommsUI();
+// Pre-load python template
+setTimeout(()=>{
+  const c=document.getElementById('pyCode');
+  if(c)c.value=PY_TEMPLATES.balance;
+  stellarLoad();
+},100);
+
+// ============================================================
+// AI AGENT
+// ============================================================
+const AI_SYSTEM_PROMPT=`You are the DAO Treasury AI agent for SF Emerald Dynasty Trust (US-SFE-PFIA-2025-T1A01). You assist with the Stellar DAO Treasury wallet GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW, SFETREAS custom asset (issuer GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP), USDC on Stellar (issuer GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN), ISO 20022 pacs.008 payments, NACHA ACH files, SFTPGo transfers, MoneyGram SEP-6 anchor pipeline, and the 7-step pipeline: DTI Token → pacs.008 → Moov ACH → SFTPGo → MoneyGram SEP-6 → MoneyGram USDC → DAO Treasury Receipt. Signers: GBM7FIWAJHOADVDI7PLWNCK3T5ZHJXX6P7LCVNX6ZAMY5R3XNI7C4QGP, GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW, GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML. Med threshold: 2.`;
+
+let aiEngine=null;
+let aiMode=null;
+let aiHistory=[{role:'system',content:AI_SYSTEM_PROMPT}];
+let aiReady=false;
 
 function toggleAI(){
-  const panel=document.getElementById('ai-panel');
-  aiOpen=!aiOpen;
-  panel.classList.toggle('open',aiOpen);
-  if(aiOpen&&!aiLoaded&&!aiLoading)loadWebLLM();
+  const p=document.getElementById('aiAgentPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')&&!aiEngine&&!aiMode){
+    initAI();
+  }
 }
+
 function aiAddMsg(role,text){
-  const msgs=document.getElementById('ai-messages');
+  const msgs=document.getElementById('aiMessages');
   const d=document.createElement('div');
   d.className='ai-msg '+role;
   d.textContent=text;
-  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
   return d;
 }
-async function loadWebLLM(){
-  aiLoading=true;
-  const prog=document.getElementById('ai-progress');
+
+function aiSetProgress(text,pct){
+  const prog=document.getElementById('aiProgress');
+  const progText=document.getElementById('aiProgressText');
+  const fill=document.getElementById('aiProgressFill');
+  if(pct===null){prog.style.display='none';return;}
   prog.style.display='block';
-  try{
-    const {CreateMLCEngine}=await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/lib/index.js');
-    aiEngine=await CreateMLCEngine('Phi-3-mini-4k-instruct-q4f16_1-MLC',{
-      initProgressCallback:(p)=>{
-        const pct=Math.round((p.progress||0)*100);
-        document.getElementById('ai-pct').textContent=pct;
-        document.getElementById('ai-progress-bar').style.width=pct+'%';
-      }
-    });
-    aiLoaded=true;prog.style.display='none';
-    aiAddMsg('system','AI Agent ready. Ask me anything about the DAO Treasury.');
-  }catch(e){
-    prog.style.display='none';
-    aiAddMsg('system','AI Agent requires WebGPU. Use Chrome 113+ or Edge.');
-  }
-  aiLoading=false;
+  progText.textContent=text;
+  fill.style.width=pct+'%';
 }
-function aiKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}}
+
+async function initAI(){
+  const hasWebGPU=typeof navigator!=='undefined'&&navigator.gpu!==undefined;
+  const badge=document.getElementById('aiModeBadge');
+  const msgs=document.getElementById('aiMessages');
+  msgs.innerHTML='';
+
+  if(hasWebGPU){
+    badge.textContent='WebGPU';badge.className='ai-mode-badge ai-mode-webgpu';
+    aiAddMsg('system','WebGPU detected. Loading Phi-3-mini via WebLLM…');
+    aiSetProgress('Importing WebLLM…',5);
+    try{
+      const {CreateMLCEngine}=await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/lib/index.js');
+      aiSetProgress('Downloading model weights…',10);
+      aiEngine=await CreateMLCEngine('Phi-3-mini-4k-instruct-q4f16_1-MLC',{
+        initProgressCallback:(p)=>{
+          const pct=Math.round((p.progress||0)*100);
+          aiSetProgress(p.text||'Loading…',pct);
+        }
+      });
+      aiMode='webllm';aiReady=true;
+      aiSetProgress(null,null);
+      aiAddMsg('system','✓ WebLLM ready. Ask me anything about the DAO Treasury.');
+    }catch(e){
+      aiSetProgress(null,null);
+      aiAddMsg('system','WebLLM failed: '+e.message+'. Falling back to WASM…');
+      initWllama();
+    }
+  }else{
+    badge.textContent='WASM';badge.className='ai-mode-badge ai-mode-wasm';
+    aiAddMsg('system','No WebGPU. Loading Phi-3-mini via Wllama WASM (Safari/Firefox)…');
+    initWllama();
+  }
+}
+
+async function initWllama(){
+  aiSetProgress('Importing Wllama…',5);
+  try{
+    const {Wllama}=await import('https://cdn.jsdelivr.net/npm/@wllama/wllama@2.0.0/esm/index.js');
+    const wllama=new Wllama({
+      'single-thread/wllama.wasm':'https://cdn.jsdelivr.net/npm/@wllama/wllama@2.0.0/esm/single-thread/wllama.wasm',
+      'multi-thread/wllama.wasm':'https://cdn.jsdelivr.net/npm/@wllama/wllama@2.0.0/esm/multi-thread/wllama.wasm',
+    });
+    aiSetProgress('Downloading GGUF model…',10);
+    await wllama.loadModelFromUrl(
+      'https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf',
+      {progressCallback:({loaded,total})=>{
+        const pct=total?Math.round(loaded/total*100):0;
+        aiSetProgress(`Downloading model… ${pct}%`,pct);
+      }}
+    );
+    aiEngine=wllama;aiMode='wllama';aiReady=true;
+    aiSetProgress(null,null);
+    aiAddMsg('system','✓ Wllama ready. Ask me anything about the DAO Treasury.');
+  }catch(e){
+    aiSetProgress(null,null);
+    aiAddMsg('system','AI engine failed to load: '+e.message+'\n\nYou can retry by closing and reopening this panel.');
+    const retryBtn=document.createElement('button');
+    retryBtn.className='comms-btn';retryBtn.textContent='↺ Retry';
+    retryBtn.onclick=()=>{aiEngine=null;aiMode=null;aiReady=false;initAI();};
+    document.getElementById('aiMessages').appendChild(retryBtn);
+  }
+}
+
+function aiKeyDown(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}
+}
+
 async function aiSend(){
-  const input=document.getElementById('ai-input');
+  if(!aiReady){aiAddMsg('system','AI engine not ready yet. Please wait…');return;}
+  const input=document.getElementById('aiInput');
   const text=input.value.trim();
   if(!text)return;
   input.value='';
   aiAddMsg('user',text);
-  aiMessages.push({role:'user',content:text});
-  if(!aiLoaded){aiAddMsg('assistant','AI model is still loading. Please wait...');return;}
-  const respEl=aiAddMsg('assistant','');
+  aiHistory.push({role:'user',content:text});
+  const thinkingEl=aiAddMsg('assistant','…');
   try{
-    const stream=await aiEngine.chat.completions.create({messages:aiMessages,stream:true});
-    let full='';
-    for await(const chunk of stream){
-      const delta=chunk.choices[0]?.delta?.content||'';
-      full+=delta;respEl.textContent=full;
-      document.getElementById('ai-messages').scrollTop=document.getElementById('ai-messages').scrollHeight;
+    let reply='';
+    if(aiMode==='webllm'){
+      const stream=await aiEngine.chat.completions.create({
+        messages:aiHistory,stream:true,temperature:0.7,max_tokens:512
+      });
+      for await(const chunk of stream){
+        const delta=chunk.choices[0]?.delta?.content||'';
+        reply+=delta;thinkingEl.textContent=reply;
+        document.getElementById('aiMessages').scrollTop=document.getElementById('aiMessages').scrollHeight;
+      }
+    }else if(aiMode==='wllama'){
+      const prompt=aiHistory.map(m=>(m.role==='system'?'<|system|>\n'+m.content+'<|end|>\n':m.role==='user'?'<|user|>\n'+m.content+'<|end|>\n':'<|assistant|>\n'+m.content+'<|end|>\n')).join('')+'<|assistant|>\n';
+      reply=await aiEngine.createCompletion(prompt,{nPredict:512,temperature:0.7,
+        onNewToken:(_,__,currentText)=>{thinkingEl.textContent=currentText;
+          document.getElementById('aiMessages').scrollTop=document.getElementById('aiMessages').scrollHeight;}
+      });
+      thinkingEl.textContent=reply;
     }
-    aiMessages.push({role:'assistant',content:full});
-  }catch(e){respEl.textContent='Error: '+e.message;}
+    aiHistory.push({role:'assistant',content:reply});
+  }catch(e){
+    thinkingEl.textContent='Error: '+e.message;
+    thinkingEl.style.color='#ff4444';
+  }
 }
-
-// init
-toggleBodyTab();
 </script>
 
 </body></html>

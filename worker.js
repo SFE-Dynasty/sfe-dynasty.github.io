@@ -43,7 +43,7 @@ export default {
       }
       if (/transaction|payment|recent|history/i.test(lastUserMsg)) {
         try {
-          const r = await fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJUW/payments?limit=5&order=desc');
+          const r = await fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJQW/payments?limit=5&order=desc');
           const d = await r.json();
           const txs = (d._embedded && d._embedded.records || []).map(function(t) { return t.type + ' ' + (t.amount || '') + ' ' + (t.asset_type === 'native' ? 'XLM' : (t.asset_code || '')) + ' at ' + t.created_at; }).join('; ');
           context += '\n[RECENT TRANSACTIONS]: ' + txs;
@@ -53,7 +53,7 @@ export default {
         try {
           const r = await fetch('https://fiduciary-clearing-engine.onrender.com/health');
           context += '\n[CLEARING ENGINE]: ' + JSON.stringify(await r.json());
-        } catch(e) { try { const r2 = await fetch('https://fiduciary-clearing-engine.onrender.com/'); context += '\n[CLEARING ENGINE]: ' + (await r2.text()).slice(0, 500); } catch(e2) {} }
+        } catch(e) {}
       }
       if (/price|xlm|bitcoin|btc|ethereum|eth|xaut|gold|crypto/i.test(lastUserMsg)) {
         try {
@@ -72,37 +72,38 @@ export default {
       const urlMatch = lastUserMsg.match(/https?:\/\/[^\s]+/);
       if (urlMatch) {
         try {
-          const r = await fetch(urlMatch[0], { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
-          context += '\n[FETCHED ' + urlMatch[0] + ']:\n' + (await r.text()).slice(0, 4000);
+          const r = await fetch('https://fiduciary-clearing-engine.onrender.com/fetch?url=' + encodeURIComponent(urlMatch[0]));
+          const d = await r.json();
+          if (d.content) context += '\n[FETCHED ' + urlMatch[0] + ']:\n' + d.content;
         } catch(e) {}
       }
 
-      // LAYER 3: UNIVERSAL LIVE WEB SEARCH via Jina AI
+      // LAYER 3: UNIVERSAL LIVE WEB SEARCH via Render relay (SearXNG + Google + Bing)
       try {
-        const jinaQuery = encodeURIComponent(lastUserMsg.slice(0, 200));
-        const jinaRes = await fetch('https://s.jina.ai/?q=' + jinaQuery, {
-          headers: { 'Accept': 'application/json', 'User-Agent': 'DAO-Treasury-Agent/1.0', 'X-Respond-With': 'no-references' }
+        const searchRes = await fetch('https://fiduciary-clearing-engine.onrender.com/search?q=' + encodeURIComponent(lastUserMsg.slice(0, 200)), {
+          headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' },
+          signal: AbortSignal.timeout(15000)
         });
-        const jinaText = await jinaRes.text();
-        if (jinaText && jinaText.length > 20) context += '\n[LIVE WEB SEARCH]:\n' + jinaText.slice(0, 3000);
+        const searchData = await searchRes.json();
+        if (searchData.result && searchData.result.length > 20) {
+          context += '\n[LIVE WEB SEARCH]:\n' + searchData.result;
+        }
       } catch(e) {}
 
-      // LAYER 4: PREPEND reasoning protocol + context BEFORE system message content
+      // LAYER 4: PREPEND reasoning protocol BEFORE system message
       const systemMsg = messages.find(function(m) { return m.role === 'system'; });
       if (systemMsg) {
-        var protocol = 'YOU ARE A FULLY CAPABLE GENERAL INTELLIGENCE with live web search and real-time data. You also manage the DAO Treasury for SF Emerald Dynasty Trust.\n';
-        protocol += 'CURRENT DATE/TIME: ' + new Date().toUTCString() + '\n';
-        protocol += 'LIVE DATA INJECTED BEMOW - use it to answer every question:\n';
-        protocol += context + '\n';
-        protocol += 'RULES, this is non-negotiable:\n';
-        protocol += '- Answer EVERY question asked, whether treasury-related or not.\n';
-        protocol += '- LIVE WEB SEARCH results are above. Read them. Use them. Answer from them.\n';
-        protocol += '- NEVER say I do not have information. You have live search results above.\n';
-        protocol += '- NEVER mention a knowledge cutoff date. You have live data.\n';
-        protocol += '- NEVER refuse a question as outside your scope. You are a general intelligence first.\n';
-        protocol += '- For sports/news/events: the answer is in LIVE WEB SEARCH above. State it directly.\n';
-        protocol += '- For cooking, science, history, anything: answer fully and accurately.\n';
-        protocol += '- Treasury context follows:\n';
+        var protocol = 'YOU ARE A BRILLIANT, FULLY CAPABLE INTELLIGENCE. You have live web search running right now across Google, Bing, and 70+ sources via SearXNG. You also manage the DAO Treasury for SF Emerald Dynasty Trust.\n';
+        protocol += 'TODAY S: ' + new Date().toUTCString() + '\n';
+        protocol += 'LIVE DATA:\n' + context + '\n';
+        protocol += 'HOW TO RESPOND:\n';
+        protocol += '- Speak naturally and directly. Like a brilliant person having a real conversation.\n';
+        protocol += '- No corporate language. No compliance disclaimers. No jargon unless asked.\n';
+        protocol += '- Answer every question asked — sports, cooking, science, news, treasury, anything.\n';
+        protocol += '- The LIVE WEB SEARCH above has the answer. Read it. State it directly and confidently.\n';
+        protocol += '- Never say you do not know. Never mention a knowledge cutoff. You have live search.\n';
+        protocol += '- For the treasury pipeline (DTI ‒ pacs.008 ‒ Moov ACH ‒ SFTPGo ‒ MoneyGram SEP-6 ‒ USDC ‒ DAO Receipt): you know it deeply. Explain it clearly when asked.\n';
+        protocol += '- Be wise, be precise, be real.\n';
         systemMsg.content = protocol + systemMsg.content;
       }
 

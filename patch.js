@@ -4,9 +4,9 @@ const REPO = 'SFE-Dynasty/sfe-dynasty.github.io';
 const FILE = 'treasury/dashboard.html';
 
 function api(method, apipath, body) {
-  return new Promise((resolve, reject) => {
-    const data = body ? JSON.stringify(body) : null;
-    const opts = {
+  return new Promise(function(resolve, reject) {
+    var data = body ? JSON.stringify(body) : null;
+    var opts = {
       hostname: 'api.github.com',
       path: apipath,
       method: method,
@@ -18,7 +18,7 @@ function api(method, apipath, body) {
         'Content-Length': data ? Buffer.byteLength(data) : 0
       }
     };
-    const req = https.request(opts, function(r) {
+    var req = https.request(opts, function(r) {
       var d = '';
       r.on('data', function(c) { d += c; });
       r.on('end', function() { resolve(JSON.parse(d)); });
@@ -29,7 +29,7 @@ function api(method, apipath, body) {
   });
 }
 
-api(GET, '/repos/' + REPO + '/contents/' + FILE)
+api('GET', '/repos/' + REPO + '/contents/' + FILE)
   .then(function(data) {
     var sha = data.sha;
     var html = Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8');
@@ -41,7 +41,7 @@ api(GET, '/repos/' + REPO + '/contents/' + FILE)
 
     html = html.replace(
       "aiMsgs.push({role:'assistant',content:reply});}catch(e){thinking.className='ma';thinking.textContent='Error: '+e.message;}}",
-      "aiMsgs.push({role:'assistant',content:reply});localStorage.setItem('dao_ai_history',ISON.stringify(aiMsgs));}catch(e){thinking.className='ma';thinking.textContent='Error: '+e.message;}}function clearAIHistory(){aiMsgs=[{role:'system',content:SYS}];localStorage.removeItem('dao_ai_history');var c=document.getElementById('aiMsgs');c.innerHTML='<div class=\"ma\">Memory cleared. Hello! I am your DAO Treasury AI.</div>';}"
+      "aiMsgs.push({role:'assistant',content:reply});localStorage.setItem('dao_ai_history',JSON.stringify(aiMsgs));}catch(e){thinking.className='ma';thinking.textContent='Error: '+e.message;}}function clearAIHistory(){aiMsgs=[{role:'system',content:SYS}];localStorage.removeItem('dao_ai_history');var c=document.getElementById('aiMsgs');c.innerHTML='<div class=\"ma\">Memory cleared. Hello! I am your DAO Treasury AI.</div>';}"
     );
 
     html = html.replace(

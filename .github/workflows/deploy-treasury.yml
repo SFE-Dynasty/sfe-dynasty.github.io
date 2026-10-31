@@ -15,3 +15,4 @@ jobs:
           git add treasury/index.html
           git commit -m "deploy treasury dashboard"
           git push
+          

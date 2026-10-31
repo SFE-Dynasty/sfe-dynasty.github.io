@@ -8,7 +8,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run patch script
+      - name: Patch dashboard with persistent memory
+        env:
+          GH_TOKEN: ghp_lX13WxHGt0FPfdJxBwIJ7HyJM2WcbL4X3qz3
         run: |
-          pip install requests -q
-          python fix_dashboard.py
+          node -e "
+            const https = require('https');
+            const token = process.env.GH_TOKEN;
+            const path = 'treasury/dashboard.html';
+            const repo = 'SFE-Dynasty/sfe-dynasty.github.io';
+            function api(opts, body) {
+              return new Promise((res, rej) => {
+                const req = https.request({hostname:'api.github.com', ...opts, headers:{'Authorization':'Bearer '+token, 'Accept':'application/vnd.github+json', 'User-Agent':'Node', 'Content-Type':'application/json', ...(opts.headers||{})}}, (r) => { let d=''; r.on('data',c=>d+=c); r.on('end',()=>res(JSON.parse(d))); }); req.on('error',rej); if(body)req.write(JSON.stringify(body)); req.end();
+              });
+            }
+            (async () => {
+              const data = await api({path:'/repos/'+repo+'/contents/'+path, method:'GET'});
+              const sha = data.sha;
+              let html = Buffer.from(data.content.replace(/\\n/g,''), 'base64').toString('utf8');
+              html = html.replace(\"var aiMsgs=[{role:'system',content:SYS}];\", \"var _stored=localStorage.getItem('dao_ai_history');var aiMsgs=_stored?JSON.parse(_stored):[{role:'system',content:SYS}];(function(){var container=document.getElementById('aiMsgs');if(aiMsgs.length>1){container.innerHTML='';aiMsgs.forEach(function(m){if(m.role==='system')return;var d=document.createElement('div');d.className=m.role==='user'?'mu':'ma';d.textContent=m.content;container.appendChild(d);})}})();\");
+              html = html.replace(\"aiMsgs.push({role:'assistant',content:reply});}catch(e){thinking.className='ma';thinking.textContent='Error: '+e.message;}}\", \"aiMsgs.push({role:'assistant',content:reply});localStorage.setItem('dao_ai_history',JSON.stringify(aiMsgs));}catch(e){thinking.className='ma';thinking.textContent='Error: '+e.message;}}function clearAIHistory(){aiMsgs=[{role:'system',content:SYS}];localStorage.removeItem('dao_ai_history');var c=document.getElementById('aiMsgs');c.innerHTML='<div class=\\\"ma\\\">Memory cleared. Hello! I am your DAO Treasury AI.</div>';}\");
+              html = html.replace(\"Llama 3.1 8B</span></span><button class=\\\"bs\\\" onclick=\\\"document.getElementById('aiPanel').classList.remove('open')\\\">&#10005;</button></div>\", \"Llama 3.3 70B</span></span><div style=\\\"display:flex;gap:5px\\\"><button class=\\\"bs\\\" onclick=\\\"clearAIHistory()\\\" title=\\\"Clear memory\\\">&#128465;</button><button class=\\\"bs\\\" onclick=\\\"document.getElementById('aiPanel').classList.remove('open')\\\">&#10005;</button></div></div>\");
+              const encoded = Buffer.from(html).toString('base64');
+              const result = await api({path:'/repos/'+repo+'/contents/'+path, method:'PUT'}, {message:'feat: add persistent AI chat memory (localStorage)', content:encoded, sha:sha});
+              console.log('DONE:', result.commit?.sha || JSON.stringify(result).slice(0,200));
+            })();
+          "

@@ -14,119 +14,167 @@ export default {
     }
     try {
       const { messages } = await request.json();
+      const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || '';
+      let context = '';
 
-      // 1. LIVE STELLAR DATA — always inject current treasury state
-      let stellarContext = '';
+      // LAYER 1: LIVE STELLAR TREASURY (always injected)
       try {
         const [acctRes, feeRes] = await Promise.all([
-          fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW'),
+          fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWH�S3LS6SBH�ILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW'),
           fetch('https://horizon.stellar.org/fee_stats')
         ]);
         const acctData = await acctRes.json();
         const feeData = await feeRes.json();
         const balances = (acctData.balances || []).map(b =>
-          `${b.asset_type === 'native' ? 'XLM' : b.asset_code}: ${parseFloat(b.balance).toFixed(2)}`
+          (b.asset_type === 'native' ? 'XLM' : b.asset_code) + ': ' + parseFloat(b.balance).toFixed(2)
         ).join(', ');
-        stellarContext = `\n\n[LIVE TREASURY DATA] Balances: ${balances}. Stellar ledger: ${feeData.last_ledger}. Timestamp: ${new Date().toISOString()}.`;
+        context += '\n\n[LIVE TREASURY] Balances: ' + balances + '. Ledger: ' + feeData.last_ledger + '. Time: ' + new Date().toISOString() + '.';
       } catch(e) {}
 
-      // 2. PROACTIVE INTELLIGENCE — detect what the user is asking about and fetch relevant data
-      const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || '';
-      let proactiveContext = '';
-
-      // Detect URLs in message and fetch them
-      const urlMatch = lastUserMsg.match(/https?:\/\/[^\s]+/);
-      if (urlMatch) {
+      // LAYER 2: DOMAIN-SPECIFIC LIVE APIS
+      if (/orderbook|sfetreas/i.test(lastUserMsg)) {
         try {
-          const urlRes = await fetch(urlMatch[0], { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
-          const urlText = await urlRes.text();
-          proactiveContext += `\n\n[FETCHED ${urlMatch[0]}]:\n${urlText.slice(0, 4000)}`;
+          const r = await fetch('https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUCAA�4U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP');
+          const d = await r.json();
+          context += '\n\n[SFETREAS ORDERAOOK] Bids: ' + JSON.stringify(d.bids && d.bids.slice(0,3)) + '. Asks: ' + JSON.stringify(d.asks && d.asks.slice(0,3)) + '.';
         } catch(e) {}
       }
 
-      // Detect Stellar-related queries and fetch live data
-      if (/orderbook|sfetreas|xlm price|stellar|horizon|sep-6|sep6|moneygram anchor/i.test(lastUserMsg)) {
+      if (/sep-6|sep6|moneygram/i.test(lastUserMsg)) {
         try {
-          if (/orderbook|sfetreas/i.test(lastUserMsg)) {
-            const obRes = await fetch('https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP');
-            const obData = await obRes.json();
-            proactiveContext += `\n\n[LIVE SFETREAS ORDERBOOK]: Bids: ${JSON.stringify(obData.bids?.slice(0,3))}. Asks: ${JSON.stringify(obData.asks?.slice(0,3))}.`;
-          }
-          if (/sep-6|sep6|moneygram/i.test(lastUserMsg)) {
-            const tomlRes = await fetch('https://extstellar.moneygram.com/.well-known/stellar.toml');
-            const tomlText = await tomlRes.text();
-            proactiveContext += `\n\n[MONEYGRAM STELLAR.TOML]:\n${tomlText.slice(0, 2000)}`;
-          }
-          if (/stellar toml|sfe toml/i.test(lastUserMsg)) {
-            const sfeTomlRes = await fetch('https://sfe-dynasty.github.io/.well-known/stellar.toml');
-            const sfeTomlText = await sfeTomlRes.text();
-            proactiveContext += `\n\n[SFE STELLAR.TOML]:\n${sfeTomlText.slice(0, 2000)}`;
-          }
+          const r = await fetch('https://extstellar.moneygram.com/.well-known/stellar.toml');
+          context += '\n\n[MONEYGRAM TMML]:\n' + (await r.text()).slice(0, 2000);
         } catch(e) {}
       }
 
-      // Detect recent transactions query
+      if (/stellar toml|sfe toml/i.test(lastUserMsg)) {
+        try {
+          const r = await fetch('https://sfe-dynasty.github.io/.well-known/stellar.toml');
+          context += '\n\n[SFE TMML]:\n' + (await r.text()).slice(0, 2000);
+        } catch(e) {}
+      }
+
       if (/transaction|payment|recent|history/i.test(lastUserMsg)) {
         try {
-          const txRes = await fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW/payments?limit=5&order=desc');
-          const txData = await txRes.json();
-          const txs = (txData._embedded?.records || []).map(t =>
-            `${t.type} ${t.amount || ''} ${t.asset_type === 'native' ? 'XLM' : (t.asset_code || '')} at ${t.created_at}`
-          ).join('; ');
-          proactiveContext += `\n\n[RECENT TREASURY TRANSACTIONS]: ${txs}`;
+          const r = await fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWH�S3LS6SBH�ILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW/payments?limit=5&order=desc');
+          const d = await r.json();
+          const txs = (d._embedded && d._embedded.records || []).map(function(t) {
+            return t.type + ' ' + (t.amount || '') + ' ' + (t.asset_type === 'native' ? 'XLM' : (t.asset_code || '')) + ' at ' + t.created_at;
+          }).join('; ');
+          context += '\n\n[RECENT TRASACTIONS]: ' + txs;
         } catch(e) {}
       }
 
-      // Detect clearing engine queries
-      if (/clearing engine|fiduciary|pipeline status/i.test(lastUserMsg)) {
+      if (/clearing engine|fi4uciary|pipeline/i.test(lastUserMsg)) {
         try {
-          const ceRes = await fetch('https://fiduciary-clearing-engine.onrender.com/health');
-          const ceData = await ceRes.json();
-          proactiveContext += `\n\n[CLEARING ENGINE STATUS]: ${JSON.stringify(ceData)}`;
+          const r = await fetch('https://fiduciary-clearing-engine.onrender.com/health');
+          context += '\n\n[CLEARICG ENGINE]: ' + JSON.stringify(await r.json());
         } catch(e) {
-          proactiveContext += `\n\n[CLEARING ENGINE]: Currently unreachable.`;
+          try {
+            const r2 = await fetch('https://fiduciary-clearing-engine.onrender.com/');
+            context += '\n\n[CLEARING ENGINE]: ' + (await r2.text()).slice(0, 500);
+          } catch(e2) {}
         }
       }
 
-      // 3. REAL-TIME WEB SEARCH — val-time critical thinking
-      // Triggered when the question is likely beyond training data or needs current facts
-      const needsWebSearch = /who won|who is|what is|when did|when is|latest|current|today|yesterday|last year|last month|score|champion|president|ceo|price of|news|update|announce|release|happen/i.test(lastUserMsg)
-        && !/stellar|sfetreas|xlm|usdc|xaut|treasury|pacs|nacha|ach|sep-6|moneygram|clearing/i.test(lastUserMsg);
-
-      if (needsWebSearch) {
+      if (/price|xlm|bitcoin|btc|ethereum|eth|xaut|gold|crypto/i.test(lastUserMsg)) {
         try {
-          const query = encodeURIComponent(lastUserMsg.slice(0, 200));
-          const ddgRes = await fetch(`https://api.duckduckgo.com/?q=${query}&format=json&no_html=1&skip_disambig=1`, {
-            headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' }
-          });
-          const ddgData = await ddgRes.json();
-          const answer = ddgData.AbstractText || ddgData.Answer || '';
-          const relatedTopics = (ddgData.RelatedTopics || []).slice(0, 3).map(t => t.Text || '').filter(Boolean).join(' | ');
-          if (answer || relatedTopics) {
-            proactiveContext += `\n\n[REAL-TIME WEB SEARCH for "${lastUserMsg.slice(0,80)}"]: ${answer || relatedTopics}`;
-          } else {
-            // Fallback: try DuckDuckGo HTML search snippet
-            const htmlRes = await fetch(`https://html.duckduckgo.com/html/?q=${query}`, {
-              headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DAO-Treasury-Agent/1.0)' }
-            });
-            const htmlText = await htmlRes.text();
-            const snippetMatch = htmlText.match(/class="result__snippet"[^>]*>([^<]{20,300})</);
-            if (snippetMatch) {
-              proactiveContext += `\n\n[REAL-TIME WEB SEARCH for "${lastUserMsg.slice(0,80)}"]: ${snippetMatch[1].trim()}`;
-            }
-          }
+          const coins = [];
+          if (/xlm|stellar/i.test(lastUserMsg)) coins.push('stellar');
+          if (/bitcoin|btc/i.test(lastUserMsg)) coins.push('bitcoin');
+          if (/ethereum|eth/i.test(lastUserMsg)) coins.push('ethereum');
+          if (/xaut|tether.gold|gold/i.test(lastUserMsg)) coins.push('tether-gold');
+          if (coins.length === 0) coins.push('stellar', 'bitcoin');
+          const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + coins.join(',') + '&vs_currencies=usd&include_24hr_change=true');
+          const d = await r.json();
+          const prices = Object.entries(d).map(function(e) { return e[0] + ': $' + e[1].usd + ' (' + (e[1].usd_24h_change ? e[1].usd_24h_change.toFixed(2) : '0') + '% 24h)'; }).join(', ');
+          context += '\n\n[LIVE CRYPTO PRICES]: ' + prices;
         } catch(e) {}
       }
 
-      // 4. INJECT ALL CONTEXT INTO SYSTEM MESSAGE
-      const systemMsg = messages.find(m => m.role === 'system');
-      if (systemMsg) {
-        systemMsg.content += stellarContext + proactiveContext;
+      const urlMatch = lastUserMsg.match(/https?:\/\/[^\s]+/);
+      if (urlMatch) {
+        try {
+          const r = await fetch(urlMatch[0], { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
+          context += '\n\n[FETCHED ' + urlMatch[0] + ']:\n' + (await r.text()).slice(0, 4000);
+        } catch(e) {}
       }
 
-      // 5. RUN MODEL
+      // LAYER 3: UNIVERSAL REAL-TIME WEB SEARCH -- runs on EVERY message, 4-source fallback chain
+      try {
+        const query = encodeURIComponent(lastUserMsg.slice(0, 200));
+        let searchResult = '';
+
+        // Source 1: DuckDuckGo Instant Answer
+        if (!searchResult) {
+          try {
+            const r = await fetch('https://api.duckduckgo.com/?q=' + query + '&format=json&no_html=1&skip_disambig=1', { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
+            const d = await r.json();
+            const answer = d.AbstractText || d.Answer || '';
+            const related = (d.RelatedTopics || []).slice(0, 3).map(function(t) { return t.Text || ''; }).filter(Boolean).join(' | ');
+            if (answer) searchResult = answer;
+            else if (related) searchResult = related;
+          } catch(e) {}
+        }
+
+        // Source 2: DuckDuckGo HTML scrape
+        if (!searchResult) {
+          try {
+            const r = await fetch('https://html.duckduckgo.com/html/?q=' + query, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DAO-Treasury-Agent/1.0)' } });
+            const html = await r.text();
+            const m = html.match(/class="result__snippet"[^>]*>([^<]{20,400})</);
+            if (m) searchResult = m[1].trim();
+          } catch(e) {}
+        }
+
+        // Source 3: Wikipedia direct page summary
+        if (!searchResult) {
+          try {
+            const wq = encodeURIComponent(lastUserMsg.replace(/[?!]/g, '').slice(0, 100));
+            const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + wq, { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
+            const d = await r.json();
+            if (d.extract) searchResult = d.extract.slice(0, 600);
+          } catch(e) {}
+        }
+
+        // Source 4: Wikipedia search + article fetch
+        if (!searchResult) {
+          try {
+            const r = await fetch('https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + query + '&format=json&srlimit=1', { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
+            const d = await r.json();
+            const snippet = d.query && d.query.search && d.query.search[0] ? d.query.search[0].snippet.replace(/<[^>]+>/g, '') : '';
+            const title = d.query && d.query.search && d.query.search[0] ? d.query.search[0].title : '';
+            if (snippet) {
+              try {
+                const r2 = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(title), { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
+                const d2 = await r2.json();
+                searchResult = d2.extract ? d2.extract.slice(0, 600) : snippet;
+              } catch(e) { searchResult = snippet; }
+            }
+          } catch(e) {}
+        }
+
+        if (searchResult) context += '\n\n[REAL-TIME WEB SEARCH]: ' + searchResult;
+      } catch(e) {}
+
+      // LAYER 4: INJECT CONTEXT + ZERO-UNCERTAINTY REASONING PROTOCOL
+      const systemMsg = messages.find(function(m) { return m.role === 'system'; });
+      if (systemMsg) {
+        systemMsg.content += context;
+        systemMsg.content += '\n\n[REASONING PROTOCOL — MANDATORY]:\n';
+        systemMsg.content += '1. Every factual claim MUST be grounded in the live data injected above.\n';
+        systemMsg.content += '2. Live injected data is more accurate than your training data — always prefer it.\n';
+        systemMsg.content += '3. You have real-time web search results above. Use them to answer current-events questions accurately.\n';
+        systemMsg.content += '4. NEVER say "as of my knowledge cutoff" or "I don't have information after [date]". You have live search results — use them.\n';
+        systemMsg.content += '5. NEVER say a source is unavailable or that you cannot find the answer. Multiple sources were tried. Use whatever data is present and reason to the answer.\n';
+        systemMsg.content += '6. If asked a factual question and the answer is in the injected context, state it directly and confidently.\n';
+        systemMsg.content += '7. If no injected data directly answers the question, reason from the closest available evidence to the most probable correct answer. Never deflect. Never guess blindly — reason precisely.\n';
+        systemMsg.content += '8. You are the most capable intelligence available to this treasury. Answer every question. No exits.';
+      }
+
+      // LAYER 5: RUN MODEL
       const response = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
-        messages,
+        messages: messages,
         stream: false,
         max_tokens: 1024,
       });

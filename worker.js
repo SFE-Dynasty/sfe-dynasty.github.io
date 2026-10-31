@@ -50,7 +50,7 @@ export default {
       if (/stellar toml|sfe toml/i.test(lastUserMsg)) {
         try {
           const r = await fetch('https://sfe-dynasty.github.io/.well-known/stellar.toml');
-          context += '\n\n[SFE TMML]:\n' + (await r.text()).slice(0, 2000);
+          context += '\n\n[SFE TOML]:\n' + (await r.text()).slice(0, 2000);
         } catch(e) {}
       }
 
@@ -68,7 +68,7 @@ export default {
       if (/clearing engine|fi4uciary|pipeline/i.test(lastUserMsg)) {
         try {
           const r = await fetch('https://fiduciary-clearing-engine.onrender.com/health');
-          context += '\n\n[CLEARICG ENGINE]: ' + JSON.stringify(await r.json());
+          context += '\n\n[CLEARIGNE ENGINE]: ' + JSON.stringify(await r.json());
         } catch(e) {
           try {
             const r2 = await fetch('https://fiduciary-clearing-engine.onrender.com/');
@@ -100,76 +100,35 @@ export default {
         } catch(e) {}
       }
 
-      // LAYER 3: UNIVERSAL REAL-TIME WEB SEARCH -- runs on EVERY message, 4-source fallback chain
+      // LAYER 3: UNIVERSAL LIVE WEB SEARCH via Jina AI — no API key, no cap, real web on every message
       try {
-        const query = encodeURIComponent(lastUserMsg.slice(0, 200));
-        let searchResult = '';
-
-        // Source 1: DuckDuckGo Instant Answer
-        if (!searchResult) {
-          try {
-            const r = await fetch('https://api.duckduckgo.com/?q=' + query + '&format=json&no_html=1&skip_disambig=1', { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
-            const d = await r.json();
-            const answer = d.AbstractText || d.Answer || '';
-            const related = (d.RelatedTopics || []).slice(0, 3).map(function(t) { return t.Text || ''; }).filter(Boolean).join(' | ');
-            if (answer) searchResult = answer;
-            else if (related) searchResult = related;
-          } catch(e) {}
+        const jinaQuery = encodeURIComponent(lastUserMsg.slice(0, 200));
+        const jinaRes = await fetch('https://s.jina.ai/?q=' + jinaQuery, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'DAO-Treasury-Agent/1.0',
+            'X-Respond-With': 'no-references'
+          }
+        });
+        const jinaText = await jinaRes.text();
+        if (jinaText && jinaText.length > 20) {
+          context += '\n\n[LIVE WEB SEARCH RESULTS]:\n' + jinaText.slice(0, 3000);
         }
-
-        // Source 2: DuckDuckGo HTML scrape
-        if (!searchResult) {
-          try {
-            const r = await fetch('https://html.duckduckgo.com/html/?q=' + query, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DAO-Treasury-Agent/1.0)' } });
-            const html = await r.text();
-            const m = html.match(/class="result__snippet"[^>]*>([^<]{20,400})</);
-            if (m) searchResult = m[1].trim();
-          } catch(e) {}
-        }
-
-        // Source 3: Wikipedia direct page summary
-        if (!searchResult) {
-          try {
-            const wq = encodeURIComponent(lastUserMsg.replace(/[?!]/g, '').slice(0, 100));
-            const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + wq, { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
-            const d = await r.json();
-            if (d.extract) searchResult = d.extract.slice(0, 600);
-          } catch(e) {}
-        }
-
-        // Source 4: Wikipedia search + article fetch
-        if (!searchResult) {
-          try {
-            const r = await fetch('https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + query + '&format=json&srlimit=1', { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
-            const d = await r.json();
-            const snippet = d.query && d.query.search && d.query.search[0] ? d.query.search[0].snippet.replace(/<[^>]+>/g, '') : '';
-            const title = d.query && d.query.search && d.query.search[0] ? d.query.search[0].title : '';
-            if (snippet) {
-              try {
-                const r2 = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(title), { headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' } });
-                const d2 = await r2.json();
-                searchResult = d2.extract ? d2.extract.slice(0, 600) : snippet;
-              } catch(e) { searchResult = snippet; }
-            }
-          } catch(e) {}
-        }
-
-        if (searchResult) context += '\n\n[REAL-TIME WEB SEARCH]: ' + searchResult;
       } catch(e) {}
 
       // LAYER 4: INJECT CONTEXT + ZERO-UNCERTAINTY REASONING PROTOCOL
       const systemMsg = messages.find(function(m) { return m.role === 'system'; });
       if (systemMsg) {
         systemMsg.content += context;
+        systemMsg.content += '\n\nCURRENT DATE AND TIME: ' + new Date().toUTCString() + '.';
         systemMsg.content += '\n\n[REASONING PROTOCOL — MANDATORY]:\n';
         systemMsg.content += '1. Every factual claim MUST be grounded in the live data injected above.\n';
         systemMsg.content += '2. Live injected data is more accurate than your training data — always prefer it.\n';
-        systemMsg.content += '3. You have real-time web search results above. Use them to answer current-events questions accurately.\n';
-        systemMsg.content += '4. NEVER say "as of my knowledge cutoff" or "I don't have information after [date]". You have live search results — use them.\n';
-        systemMsg.content += '5. NEVER say a source is unavailable or that you cannot find the answer. Multiple sources were tried. Use whatever data is present and reason to the answer.\n';
-        systemMsg.content += '6. If asked a factual question and the answer is in the injected context, state it directly and confidently.\n';
-        systemMsg.content += '7. If no injected data directly answers the question, reason from the closest available evidence to the most probable correct answer. Never deflect. Never guess blindly — reason precisely.\n';
-        systemMsg.content += '8. You are the most capable intelligence available to this treasury. Answer every question. No exits.';
+        systemMsg.content += '3. LIVE WEB SEARCH RESULTS are injected above. Use them. They are from the real web, retrieved right now.\n';
+        systemMsg.content += '4. The current date is injected above. NEVER mention a knowledge cutoff date. NEVER say you do not have information after any date.\n';
+        systemMsg.content += '5. NEVER say you cannot find the answer. The web search results above contain the answer. Read them and respond from them.\n';
+        systemMsg.content += '6. If asked about sports, news, current events, prices, or any factual question — the answer is in the LIVE WEB SEARCH RESULTS above. Use it.\n';
+        systemMsg.content += '7. Reason from the injected evidence. Answer directly. No deflection. No exits.';
       }
 
       // LAYER 5: RUN MODEL

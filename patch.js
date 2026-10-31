@@ -18,10 +18,13 @@ function api(method, apipath, body) {
         'Content-Length': data ? Buffer.byteLength(data) : 0
       }
     };
+    var bufs = [];
     var req = https.request(opts, function(r) {
-      var d = '';
-      r.on('data', function(c) { d += c; });
-      r.on('end', function() { resolve(JSON.parse(d)); });
+      r.on('data', function(c) { bufs.push(Buffer.from(c)); });
+      r.on('end', function() {
+        try { resolve(JSON.parse(Buffer.concat(bufs).toString('utf8'))); }
+        catch(e) { reject(e); }
+      });
     });
     req.on('error', reject);
     if (data) req.write(data);
@@ -36,12 +39,12 @@ api('GET', '/repos/' + REPO + '/contents/' + FILE)
 
     html = html.replace(
       "var aiMsgs=[{role:'system',content:SYS}];",
-      "var _stored=localStorage.getItem('dao_ai_history');var aiMsgs=_stored?JSON.parse(_stored):[{role:'system',content:SYS}];(function(){var container=document.getElementById('aiMsgs');if(aiMsgs.length>1){container.innerHTML='';aiMsgs.forEach(function(m){if(m.role==='system')return;var d=document.createElement('div');d.className=m.role==='user'?'mu':'ma';d.textContent=m.content;container.appendChild(d);})}})();"
+      "var _stored=localStorage.getItem('dao_ai_history');var aiMsgs=_stored?JSON.parse(_stored):[{role:'system',content:SYS}];(function(){var container=document.getElementById('aiMsgs');if(aiMsgs.length>1){container.innerHTML='';aiMsgs.forEach(function(m){if(m.role==='system')return;]ar d=document.createElement('div');d.className=m.role==='user'?'mu':'ma';d.textContent=m.content;container.appendChild(d);})}})();"
     );
 
     html = html.replace(
       "aiMsgs.push({role:'assistant',content:reply});}catch(e){thinking.className='ma';thinking.textContent='Error: '+e.message;}}",
-      "aiMsgs.push({role:'assistant',content:reply});localStorage.setItem('dao_ai_history',JSON.stringify(aiMsgs));}catch(e){thinking.className='ma';thinking.textContent='Error: '+e.message;}}function clearAIHistory(){aiMsgs=[{role:'system',content:SYS}];localStorage.removeItem('dao_ai_history');var c=document.getElementById('aiMsgs');c.innerHTML='<div class=\"ma\">Memory cleared. Hello! I am your DAO Treasury AI.</div>';}"
+      "aiMsgs.push({role:'assistant',content:reply});localStorage.setItem('dao_ai_history',JSON.stringify(aiMsgs));}catch(e){thinking.className='ma';thinking.textContent='Error: '+e.message;}}function clearAIHistory(){aiMsgs=[{role:'system',content:SYS}];localStorage.removeItem('dao_ai_history');var c=document.getElementById('aiMsgs');c.innerHTML='<div class=\"ma\">Memory cleared. Hello! I am your DAO Treasury AI</div>';}"
     );
 
     html = html.replace(

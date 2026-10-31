@@ -88,13 +88,43 @@ export default {
         }
       }
 
-      // 3. INJECT ALL CONTEXT INTO SYSTEM MESSAGE
+      // 3. REAL-TIME WEB SEARCH — val-time critical thinking
+      // Triggered when the question is likely beyond training data or needs current facts
+      const needsWebSearch = /who won|who is|what is|when did|when is|latest|current|today|yesterday|last year|last month|score|champion|president|ceo|price of|news|update|announce|release|happen/i.test(lastUserMsg)
+        && !/stellar|sfetreas|xlm|usdc|xaut|treasury|pacs|nacha|ach|sep-6|moneygram|clearing/i.test(lastUserMsg);
+
+      if (needsWebSearch) {
+        try {
+          const query = encodeURIComponent(lastUserMsg.slice(0, 200));
+          const ddgRes = await fetch(`https://api.duckduckgo.com/?q=${query}&format=json&no_html=1&skip_disambig=1`, {
+            headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' }
+          });
+          const ddgData = await ddgRes.json();
+          const answer = ddgData.AbstractText || ddgData.Answer || '';
+          const relatedTopics = (ddgData.RelatedTopics || []).slice(0, 3).map(t => t.Text || '').filter(Boolean).join(' | ');
+          if (answer || relatedTopics) {
+            proactiveContext += `\n\n[REAL-TIME WEB SEARCH for "${lastUserMsg.slice(0,80)}"]: ${answer || relatedTopics}`;
+          } else {
+            // Fallback: try DuckDuckGo HTML search snippet
+            const htmlRes = await fetch(`https://html.duckduckgo.com/html/?q=${query}`, {
+              headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DAO-Treasury-Agent/1.0)' }
+            });
+            const htmlText = await htmlRes.text();
+            const snippetMatch = htmlText.match(/class="result__snippet"[^>]*>([^<]{20,300})</);
+            if (snippetMatch) {
+              proactiveContext += `\n\n[REAL-TIME WEB SEARCH for "${lastUserMsg.slice(0,80)}"]: ${snippetMatch[1].trim()}`;
+            }
+          }
+        } catch(e) {}
+      }
+
+      // 4. INJECT ALL CONTEXT INTO SYSTEM MESSAGE
       const systemMsg = messages.find(m => m.role === 'system');
       if (systemMsg) {
         systemMsg.content += stellarContext + proactiveContext;
       }
 
-      // 4. RUN MODEL
+      // 5. RUN MODEL
       const response = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
         messages,
         stream: false,

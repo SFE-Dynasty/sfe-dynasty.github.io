@@ -28,7 +28,6 @@ function ghRequest(method, path, body) {
   });
 }
 
-// Worker.js content
 var W = '';
 W += 'export default {\n';
 W += '  async fetch(request, env) {\n';
@@ -75,7 +74,7 @@ W += '        } catch(e) {}\n';
 W += '      }\n';
 W += '      if (/transaction|payment|recent|history/i.test(lastUserMsg)) {\n';
 W += '        try {\n';
-W += '          const r = await fetch(\'https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJUW/payments?limit=5&order=desc\');\n';
+W += '          const r = await fetch(\'https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJQW/payments?limit=5&order=desc\');\n';
 W += '          const d = await r.json();\n';
 W += '          const txs = (d._embedded && d._embedded.records || []).map(function(t) { return t.type + \' \' + (t.amount || \'\') + \' \' + (t.asset_type === \'native\' ? \'XLM\' : (t.asset_code || \'\')) + \' at \' + t.created_at; }).join(\'; \');\n';
 W += '          context += \'\\n[RECENT TRANSACTIONS]: \' + txs;\n';
@@ -85,7 +84,7 @@ W += '      if (/clearing engine|fiduciary|pipeline/i.test(lastUserMsg)) {\n';
 W += '        try {\n';
 W += '          const r = await fetch(\'https://fiduciary-clearing-engine.onrender.com/health\');\n';
 W += '          context += \'\\n[CLEARING ENGINE]: \' + JSON.stringify(await r.json());\n';
-W += '        } catch(e) { try { const r2 = await fetch(\'https://fiduciary-clearing-engine.onrender.com/\'); context += \'\\n[CLEARING ENGINE]: \' + (await r2.text()).slice(0, 500); } catch(e2) {} }\n';
+W += '        } catch(e) {}\n';
 W += '      }\n';
 W += '      if (/price|xlm|bitcoin|btc|ethereum|eth|xaut|gold|crypto/i.test(lastUserMsg)) {\n';
 W += '        try {\n';
@@ -104,37 +103,38 @@ W += '      }\n';
 W += '      const urlMatch = lastUserMsg.match(/https?:\\/\\/[^\\s]+/);\n';
 W += '      if (urlMatch) {\n';
 W += '        try {\n';
-W += '          const r = await fetch(urlMatch[0], { headers: { \'User-Agent\': \'DAO-Treasury-Agent/1.0\' } });\n';
-W += '          context += \'\\n[FETCHED \' + urlMatch[0] + \']:\\n\' + (await r.text()).slice(0, 4000);\n';
+W += '          const r = await fetch(\'https://fiduciary-clearing-engine.onrender.com/fetch?url=\' + encodeURIComponent(urlMatch[0]));\n';
+W += '          const d = await r.json();\n';
+W += '          if (d.content) context += \'\\n[FETCHED \' + urlMatch[0] + \']:\\n\' + d.content;\n';
 W += '        } catch(e) {}\n';
 W += '      }\n';
 W += '\n';
-W += '      // LAYER 3: UNIVERSAL LIVE WEB SEARCH via Jina AI\n';
+W += '      // LAYER 3: UNIVERSAL LIVE WEB SEARCH via Render relay (SearXNG + Google + Bing)\n';
 W += '      try {\n';
-W += '        const jinaQuery = encodeURIComponent(lastUserMsg.slice(0, 200));\n';
-W += '        const jinaRes = await fetch(\'https://s.jina.ai/?q=\' + jinaQuery, {\n';
-W += '          headers: { \'Accept\': \'application/json\', \'User-Agent\': \'DAO-Treasury-Agent/1.0\', \'X-Respond-With\': \'no-references\' }\n';
+W += '        const searchRes = await fetch(\'https://fiduciary-clearing-engine.onrender.com/search?q=\' + encodeURIComponent(lastUserMsg.slice(0, 200)), {\n';
+W += '          headers: { \'User-Agent\': \'DAO-Treasury-Agent/1.0\' },\n';
+W += '          signal: AbortSignal.timeout(15000)\n';
 W += '        });\n';
-W += '        const jinaText = await jinaRes.text();\n';
-W += '        if (jinaText && jinaText.length > 20) context += \'\\n[LIVE WEB SEARCH]:\\n\' + jinaText.slice(0, 3000);\n';
+W += '        const searchData = await searchRes.json();\n';
+W += '        if (searchData.result && searchData.result.length > 20) {\n';
+W += '          context += \'\\n[LIVE WEB SEARCH]:\\n\' + searchData.result;\n';
+W += '        }\n';
 W += '      } catch(e) {}\n';
 W += '\n';
-W += '      // LAYER 4: PREPEND reasoning protocol + context BEFORE system message content\n';
+W += '      // LAYER 4: PREPEND reasoning protocol BEFORE system message\n';
 W += '      const systemMsg = messages.find(function(m) { return m.role === \'system\'; });\n';
 W += '      if (systemMsg) {\n';
-W += '        var protocol = \'YOU ARE A FULLY CAPABLE GENERAL INTELLIGENCE with live web search and real-time data. You also manage the DAO Treasury for SF Emerald Dynasty Trust.\\n\';\n';
-W += '        protocol += \'CURRENT DATE/TIME: \' + new Date().toUTCString() + \'\\n\';\n';
-W += '        protocol += \'LIVE DATA INJECTED BEMOW - use it to answer every question:\\n\';\n';
-W += '        protocol += context + \'\\n\';\n';
-W += '        protocol += \'RULES, this is non-negotiable:\\n\';\n';
-W += '        protocol += \'- Answer EVERY question asked, whether treasury-related or not.\\n\';\n';
-W += '        protocol += \'- LIVE WEB SEARCH results are above. Read them. Use them. Answer from them.\\n\';\n';
-W += '        protocol += \'- NEVER say I do not have information. You have live search results above.\\n\';\n';
-W += '        protocol += \'- NEVER mention a knowledge cutoff date. You have live data.\\n\';\n';
-W += '        protocol += \'- NEVER refuse a question as outside your scope. You are a general intelligence first.\\n\';\n';
-W += '        protocol += \'- For sports/news/events: the answer is in LIVE WEB SEARCH above. State it directly.\\n\';\n';
-W += '        protocol += \'- For cooking, science, history, anything: answer fully and accurately.\\n\';\n';
-W += '        protocol += \'- Treasury context follows:\\n\';\n';
+W += '        var protocol = \'YOU ARE A BRILLIANT, FULLY CAPABLE INTELLIGENCE. You have live web search running right now across Google, Bing, and 70+ sources via SearXNG. You also manage the DAO Treasury for SF Emerald Dynasty Trust.\\n\';\n';
+W += '        protocol += \'TODAY S: \' + new Date().toUTCString() + \'\\n\';\n';
+W += '        protocol += \'LIVE DATA:\\n\' + context + \'\\n\';\n';
+W += '        protocol += \'HOW TO RESPOND:\\n\';\n';
+W += '        protocol += \'- Speak naturally and directly. Like a brilliant person having a real conversation.\\n\';\n';
+W += '        protocol += \'- No corporate language. No compliance disclaimers. No jargon unless asked.\\n\';\n';
+W += '        protocol += \'- Answer every question asked — sports, cooking, science, news, treasury, anything.\\n\';\n';
+W += '        protocol += \'- The LIVE WEB SEARCH above has the answer. Read it. State it directly and confidently.\\n\';\n';
+W += '        protocol += \'- Never say you do not know. Never mention a knowledge cutoff. You have live search.\\n\';\n';
+W += '        protocol += \'- For the treasury pipeline (DTI ‒ pacs.008 ‒ Moov ACH ‒ SFTPGo ‒ MoneyGram SEP-6 ‒ USDC ‒ DAO Receipt): you know it deeply. Explain it clearly when asked.\\n\';\n';
+W += '        protocol += \'- Be wise, be precise, be real.\\n\';\n';
 W += '        systemMsg.content = protocol + systemMsg.content;\n';
 W += '      }\n';
 W += '\n';
@@ -147,7 +147,7 @@ W += '    }\n';
 W += '  }\n';
 W += '};\n';
 
-var NEW_SYS = 'You are a highly intelligent AI assistant with live web search and real-time data access. You answer any question on any topic accurately and completely. You also serve as the DAO Treasury AI agent for SF Emerald Dynasty Trust (US-SFE-PFIA-2025-T1A01), managing treasury GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW, SFETREAS issuer GCLFWV2RMDZYNAMUC@��4US4DP33MSWGCIVOH6SK6F4SVMYYR3CQSLKOP, pipeline: DTI to pacs.008 to Moov ACH to SFTPGo to MoneyGram SEP-6 to USDC to DAO Receipt. Med threshold 2. Answer every question asked.';
+var NEW_SYS = 'You are a brilliant, real intelligence — not a bot, not a corporate assistant. You think clearly, speak directly, and know everything worth knowing. You also run the DAO Treasury for SF Emerald Dynasty Trust (US-SFE-PFIA-2025-T1A01): treasury GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJQW, SFETREAS issuer GCLFWV2RMDZYNAMUCBH54U43DP33MSWGCIVOH6SK6F4SVMYYR3CQSLKOP, pipeline DTI to pacs.008 to Moov ACH to SFTPGo to MoneyGram SEP-6 to USDC to DAO Receipt, med threshold 2. You answer everything. You never deflect.';
 
 function main() {
   ghRequest('GET', 'worker.js', null).then(function(current) {
@@ -155,30 +155,30 @@ function main() {
     var sha = current.body.sha;
     console.log('worker.js SHA:', sha);
     return ghRequest('PUT', 'worker.js', {
-      message: 'fix: prepend reasoning protocol, general intelligence identity',
+      message: 'feat: Render SearXNG search relay + natural personality',
       sha: sha,
       content: Buffer.from(W).toString('base64')
     });
   }).then(function(r) {
     if (r.status !== 200 && r.status !== 201) { console.error('worker.js PUT failed:', JSON.stringify(r.body)); process.exit(1); }
-    console.log('worker.js updated. SHA:', r.body.content.sha);
+    console.log('worker.js updated:', r.body.content.sha);
     return ghRequest('GET', 'treasury/dashboard.html', null);
   }).then(function(r) {
     if (r.status !== 200) { console.error('Failed to get dashboard.html'); process.exit(1); }
     var sha = r.body.sha;
     var html = Buffer.from(r.body.content.replace(/\n/g, ''), 'base64').toString('utf8');
     var oldSysMatch = html.match(/var SYS='[^']*'/);
-    if (!oldSysMatch) { console.error('SYS variable not found in dashboard.html'); process.exit(1); }
-    console.log('Found SYS:', oldSysMatch[0].slice(0, 80) + '...');
+    if (!oldSysMatch) { console.error('SYS not found'); process.exit(1); }
+    console.log('Found SYS, replacing...');
     var newHtml = html.replace(/var SYS='[^']*'/, "var SYS='" + NEW_SYS + "'");
     return ghRequest('PUT', 'treasury/dashboard.html', {
-      message: 'fix: rewrite SYS to general intelligence, not treasury-only specialist',
+      message: 'fix: natural direct personality — no jargon no deflection',
       sha: sha,
       content: Buffer.from(newHtml).toString('base64')
     });
   }).then(function(r) {
     if (r.status !== 200 && r.status !== 201) { console.error('dashboard.html PUT failed:', JSON.stringify(r.body)); process.exit(1); }
-    console.log('dashboard.html updated. SHA:', r.body.content.sha);
+    console.log('dashboard.html updated:', r.body.content.sha);
     console.log('ALL DONE.');
   }).catch(function(err) {
     console.error('ERROR:', err.message);

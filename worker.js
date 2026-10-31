@@ -14,7 +14,7 @@ export default {
     }
     try {
       const { messages } = await request.json();
-      const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+      const response = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
         messages,
         stream: false,
         max_tokens: 512,

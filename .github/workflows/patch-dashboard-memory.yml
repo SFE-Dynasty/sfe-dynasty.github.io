@@ -1,0 +1,14 @@
+name: Patch Dashboard Memory
+
+on:
+  workflow_dispatch:
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run patch script
+        run: |
+          pip install requests -q
+          python fix_dashboard.py

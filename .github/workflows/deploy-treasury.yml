@@ -1,0 +1,17 @@
+name: Deploy Treasury Dashboard
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write dashboard
+        run: cp treasury/dashboard.html treasury/index.html
+      - name: Commit and push
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add treasury/index.html
+          git commit -m "deploy treasury dashboard"
+          git push

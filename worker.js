@@ -9,84 +9,162 @@ export default {
       const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || '';
       let context = '';
 
-      // DEPOSIT INIT COMMAND
-      if (lastUserMsg === '__DEPOSIT_INIT__') {
-        try {
-          const StellarSdk = await import('https://cdn.jsdelivr.net/npm/stellar-sdk@12.3.0/+esm');
-          const TREASURY_SECRET = 'SDUDKTIKVX6NQVG7XCCUFIDI62QPO2QWMRN35LHFWYHU33IZFEAA4A55';
-          const GBM7_SECRET = 'SCAZ7NWRI2EOOBD7Z2BFYP7YNO7TPRAIIQJHY7B3ZDZPFCCE6QN7CTGK';
-          const GCHQ_SECRET = 'SBTXFQABN3XNCJJFZGOQRQO3P4USQTG2INX2UVOHWUCKRZRNRWU7FZR7';
-          const TREASURY_PUBLIC = 'GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
-          const NETWORK_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
-          const SEP10_AUTH = 'https://mgxanchor.moneygram.com/stellarsepservice/auth';
-          const SEP24_DEPOSIT = 'https://mgxanchor.moneygram.com/stellarsepservice/sep24/transactions/deposit/interactive';
-          const CLIENT_DOMAIN = 'sfe-dynasty.github.io';
-          const USDC_ISSUER = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
+      // DEPOSIT INIT COMMAND — SEP-10 + SEP-24 server-side, no SDK needed
+      if (request.method === 'POST') {
+        let bodyCheck;
+        try { bodyCheck = await request.clone().json(); } catch(e) {}
+        if (bodyCheck && bodyCheck.messages && bodyCheck.messages.filter(m => m.role === 'user').pop()?.content === '__DEPOSIT_INIT__') {
+          try {
+            const TREASURY_SECRET = 'SDUDKTIKVX6NQVG7XCCUFIDI62QPO2QWMRN35LHFWYHU33IZFEAA4A55';
+            const GBM7_SECRET = 'SCAZ7NWRI2EOOBD7Z2BFYP7YNO7TPRAIIQJHY7B3ZDZPFCCE6QN7CTGK';
+            const GCHQ_SECRET = 'SBTXFQABN3XNCJJFZGOQRQO3P4USQTG2INX2UVOHWUCKRZRNRWU7FZR7';
+            const TREASURY_PUBLIC = 'GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
+            const NETWORK_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
+            const SEP10_AUTH = 'https://mgxanchor.moneygram.com/stellarsepservice/auth';
+            const SEP24_DEPOSIT = 'https://mgxanchor.moneygram.com/stellarservice/sep24/transactions/deposit/interactive';
+            const CLIENT_DOMAIN = 'sfe-dynasty.github.io';
+            const USDC_ISSUER = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
 
-          // Step 1: Fetch SEP-10 challenge
-          const challengeRes = await fetch(`${SEP10_AUTH}?account=${TREASURY_PUBLIC}&client_domain=${CLIENT_DOMAIN}`);
-          if (!challengeRes.ok) {
-            const errText = await challengeRes.text();
-            return new Response(JSON.stringify({ error: 'SEP-10 challenge fetch failed: ' + errText }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-          }
-          const challengeData = await challengeRes.json();
-          const challengeXdr = challengeData.transaction;
-          if (!challengeXdr) {
-            return new Response(JSON.stringify({ error: 'No transaction in SEP-10 challenge response' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-          }
+            const B58_ALPHA = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
-          // Step 2: Sign with all 3 keys
-          const network = new StellarSdk.Networks.PUBLIC;
-          const tx = StellarSdk.TransactionBuilder.fromXDR(challengeXdr, NETWORK_PASSPHRASE);
-          const treasuryKP = StellarSdk.Keypair.fromSecret(TREASURY_SECRET);
-          const gbm7KP = StellarSdk.Keypair.fromSecret(GBM7_SECRET);
-          const gchqKP = StellarSdk.Keypair.fromSecret(GCHQ_SECRET);
-          tx.sign(treasuryKP);
-          tx.sign(gbm7KP);
-          tx.sign(gchqKP);
-          const signedXdr = tx.toXDR();
+            function b58decode(str) {
+              let bytes = [0];
+              for (const c of str) {
+                const idx = B58_ALPHA.indexOf(c);
+                if (idx < 0) throw new Error('Invalid base58 char: ' + c);
+                let carry = idx;
+                for (let j = 0; j < bytes.length; j++) {
+                  carry += bytes[j] * 58;
+                  bytes[j] = carry & 0xff;
+                  carry >>= 8;
+                }
+                while (carry > 0) { bytes.push(carry & 0xff); carry >>= 8; }
+              }
+              for (const c of str) { if (c === '1') bytes.push(0); else break; }
+              return new Uint8Array(bytes.reverse());
+            }
 
-          // Step 3: POST signed XDR to get JWT
-          const tokenRes = await fetch(SEP10_AUTH, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ transaction: signedXdr })
-          });
-          if (!tokenRes.ok) {
-            const errText = await tokenRes.text();
-            return new Response(JSON.stringify({ error: 'SEP-10 token exchange failed: ' + errText }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-          }
-          const tokenData = await tokenRes.json();
-          const jwt = tokenData.token;
-          if (!jwt) {
-            return new Response(JSON.stringify({ error: 'No JWT in SEP-10 token response' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-          }
+            function stellarSecretToRaw(secret) {
+              const decoded = b58decode(secret);
+              return decoded.slice(1, 33);
+            }
 
-          // Step 4: POST to SEP-24 deposit endpoint
-          const depositBody = new URLSearchParams();
-          depositBody.append('asset_code', 'USDC');
-          depositBody.append('asset_issuer', USDC_ISSUER);
-          depositBody.append('account', TREASURY_PUBLIC);
-          const depositRes = await fetch(SEP24_DEPOSIT, {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + jwt,
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: depositBody.toString()
-          });
-          if (!depositRes.ok) {
-            const errText = await depositRes.text();
-            return new Response(JSON.stringify({ error: 'SEP-24 deposit initiation failed: ' + errText }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            async function signBytes(secretKey32, messageBytes) {
+              const key = await crypto.subtle.importKey('raw', secretKey32, { name: 'Ed25519' }, false, ['sign']);
+              const sig = await crypto.subtle.sign('Ed25519', key, messageBytes);
+              return new Uint8Array(sig);
+            }
+
+            async function stellarSign(secretStr, txHashBytes) {
+              const raw = stellarSecretToRaw(secretStr);
+              return signBytes(raw, txHashBytes);
+            }
+
+            function b64decode(str) {
+              const bin = atob(str);
+              return new Uint8Array(bin.length).map((_, i) => bin.charCodeAt(i));
+            }
+
+            function b64encode(bytes) {
+              let bin = '';
+              for (const b of bytes) bin += String.fromCharCode(b);
+              return btoa(bin);
+            }
+
+            async function sha256(data) {
+              return new Uint8Array(await crypto.subtle.digest('SHA-256', data));
+            }
+
+            async function computeTxHash(xdrBase64) {
+              const xdrBytes = b64decode(xdrBase64);
+              const networkHash = await sha256(new TextEncoder().encode(NETWORK_PASSPHRASE));
+              const view = new DataView(xdrBytes.buffer);
+              const envType = view.getUint32(0);
+              const sigArraySize = 4 + 1 * (4 + 64);
+              const txBytes = xdrBytes.slice(4, xdrBytes.length - sigArraySize);
+              const envTypeBytes = new Uint8Array(4);
+              new DataView(envTypeBytes.buffer).setUint32(0, envType);
+              const payload = new Uint8Array(32 + 4 + txBytes.length);
+              payload.set(networkHash, 0);
+              payload.set(envTypeBytes, 32);
+              payload.set(txBytes, 36);
+              return sha256(payload);
+            }
+
+            function stellarPublicKeyBytes(publicKeyStr) {
+              const decoded = b58decode(publicKeyStr);
+              return decoded.slice(1, 33);
+            }
+
+            function appendSignature(xdrBytes, hint4, sig64) {
+              const len = xdrBytes.length;
+              const sigCountOffset = len - 72;
+              const view = new DataView(xdrBytes.buffer, xdrBytes.byteOffset);
+              const currentCount = view.getUint32(sigCountOffset);
+              const newXdr = new Uint8Array(len + 68);
+              newXdr.set(xdrBytes);
+              new DataView(newXdr.buffer).setUint32(sigCountOffset, currentCount + 1);
+              newXdr.set(hint4, len);
+              newXdr.set(sig64, len + 4);
+              return newXdr;
+            }
+
+            const challengeRes = await fetch(SEP10_AUTH + '?account=' + TREASURY_PUBLIC + '&client_domain=' + CLIENT_DOMAIN);
+            const challengeData = await challengeRes.json();
+            if (!challengeData.transaction) {
+              return new Response(JSON.stringify({ error: 'No challenge: ' + JSON.stringify(challengeData) }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
+
+            let xdrBytes = b64decode(challengeData.transaction);
+            const txHash = await computeTxHash(challengeData.transaction);
+
+            const treasuryPubBytes = stellarPublicKeyBytes(TREASURY_PUBLIC);
+            const gbm7PubBytes = stellarPublicKeyBytes('GBM7FIWAJHOADVDI7PLWNCK3T5ZHJXX6P7LCVNX6ZAMY5R3XNI7C4QGP');
+            const gchqPubBytes = stellarPublicKeyBytes('GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML');
+
+            const treasurySig = await stellarSign(TREASURY_SECRET, txHash);
+            const gbm7Sig = await stellarSign(GBM7_SECRET, txHash);
+            const gchqSig = await stellarSign(GCHQ_SECRET, txHash);
+
+            xdrBytes = appendSignature(xdrBytes, treasuryPubBytes.slice(28, 32), treasurySig);
+            xdrBytes = appendSignature(xdrBytes, gbm7PubBytes.slice(28, 32), gbm7Sig);
+            xdrBytes = appendSignature(xdrBytes, gchqPubBytes.slice(28, 32), gchqSig);
+
+            const signedXdr = b64encode(xdrBytes);
+
+            const authRes = await fetch(SEP10_AUTH, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ transaction: signedXdr })
+            });
+            const authData = await authRes.json();
+            if (!authData.token) {
+              return new Response(JSON.stringify({ error: 'No JWT: ' + JSON.stringify(authData) }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
+            const jwt = authData.token;
+
+            const depositBody = new URLSearchParams({
+              asset_code: 'USDC',
+              asset_issuer: USDC_ISSUER,
+              account: TREASURY_PUBLIC
+            });
+            const depositRes = await fetch(SEP24_DEPOSIT, {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + jwt, 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: depositBody.toString()
+            });
+            const depositData = await depositRes.json();
+
+            return new Response(JSON.stringify({
+              deposit_url: depositData.url || null,
+              transaction_id: depositData.id || null,
+              type: depositData.type || null,
+              response: depositData
+            }), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+
+          } catch(err) {
+            return new Response(JSON.stringify({ error: '__DEPOSIT_INIT__ failed: ' + err.message }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
           }
-          const depositData = await depositRes.json();
-          return new Response(JSON.stringify({
-            deposit_url: depositData.url,
-            transaction_id: depositData.id,
-            response: 'SEP-24 deposit session initiated successfully.'
-          }), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-        } catch (depositErr) {
-          return new Response(JSON.stringify({ error: 'Deposit init error: ' + depositErr.message }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
         }
       }
 

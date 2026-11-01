@@ -73,13 +73,14 @@ export default {
     }
     function findSigArrayOffset(buf) {
       const len = buf.length;
+      // Stellar XDR: each sig = 4 (hint) + 4 (length prefix) + 64 (sig data) = 72 bytes
       for (let n = 0; n <= 5; n++) {
-        const candidateOffset = len - (4 + n * 68);
+        const candidateOffset = len - (4 + n * 72);
         if (candidateOffset >= 4 && u32(buf, candidateOffset) === n) {
           return candidateOffset;
         }
       }
-      return len - 72;
+      return len - 76; // fallback: assume 1 sig (4 + 72 = 76)
     }
     async function computeTxHash(xdrBytes) {
       const networkHash = await sha256(new TextEncoder().encode(NETWORK_PASSPHRASE));
@@ -96,11 +97,14 @@ export default {
     function appendSignature(xdrBytes, hint4, sig64) {
       const sigOffset = findSigArrayOffset(xdrBytes);
       const currentCount = u32(xdrBytes, sigOffset);
-      const newXdr = new Uint8Array(xdrBytes.length + 68);
+      // Each sig in XDR: 4 (hint) + 4 (length=64) + 64 (sig data) = 72 bytes
+      const newXdr = new Uint8Array(xdrBytes.length + 72);
       newXdr.set(xdrBytes);
       setU32(newXdr, sigOffset, currentCount + 1);
+      // Append: hint (4) + length prefix (4, value=64) + sig (64)
       newXdr.set(hint4, xdrBytes.length);
-      newXdr.set(sig64, xdrBytes.length + 4);
+      setU32(newXdr, xdrBytes.length + 4, 64); // length prefix = 64
+      newXdr.set(sig64, xdrBytes.length + 8);
       return newXdr;
     }
     async function signXdr(xdrBytes, secretKey) {
@@ -116,7 +120,7 @@ export default {
       return appendSignature(xdrBytes, hint, sig);
     }
     const challengeResp = await fetch(
-      `${SEP10_URL}?account=${TREASURY_PUBLIC}&client_domain=${CLIENT_DOMAIN}`
+      `${SEP10_URL}?account=${TREASUY_PUBLIC}&client_domain=${CLIENT_DOMAIN}`
     );
     if (!challengeResp.ok) throw new Error(`Challenge fetch failed: ${challengeResp.status}`);
     const { transaction: challengeXdr } = await challengeResp.json();
@@ -127,8 +131,8 @@ export default {
     debugInfo = { xdrLen, envType: u32(xdrBytes, 0) };
     // Scan for sig count offset
     for (let n = 0; n <= 5; n++) {
-      const off = xdrLen - (4 + n * 68);
-      if (off >= 4) debugInfo[`u32_at_len-${4+n*68}`] = u32(xdrBytes, off);
+      const off = xdrLen - (4 + n * 72);
+      if (off >= 4) debugInfo[`u32_at_len-${4+n*72}`] = u32(xdrBytes, off);
     }
     // Also check a few specific offsets
     debugInfo.u32_at_424 = xdrLen > 428 ? u32(xdrBytes, 424) : 'N/A';
@@ -157,7 +161,7 @@ export default {
     });
     if (!tokenResp.ok) {
       const errText = await tokenResp.text();
-      throw new Error(`Token POST ${tokenResp.status}: ${errText}`);
+      throw new Error(`Token POST ${tokenResp.status} ${errText}`);
     }
     const tokenData = await tokenResp.json();
     const jwt = tokenData.token;

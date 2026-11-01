@@ -9,8 +9,9 @@ export default {
       const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || '';
       let context = '';
 
-      // DEPOSIT INIT COMMAND — SEP-10 + SEP-24 server-side, no SDK needed
+      // DEPOSIT INIT COMMAND â€” SEP-10 + SEP-24 server-side, no SDK needed
       if (lastUserMsg === '__DEPOSIT_INIT__') {
+  let debugInfo = {};
   try {
     const TREASURY_SECRET   = 'SDUDKTIKVX6NQVG7XCCUFIDI62QPO2QWMRN35LHFWYHU33IZFEAA4A55';
     const GBM7_SECRET       = 'SCAZ7NWRI2EOOBD7Z2BFYP7YNO7TPRAIIQJHY7B3ZDZPFCCE6QN7CTGK';
@@ -123,7 +124,7 @@ export default {
     
     // DEBUG: analyze XDR structure
     const xdrLen = xdrBytes.length;
-    const debugInfo = { xdrLen, envType: u32(xdrBytes, 0) };
+    debugInfo = { xdrLen, envType: u32(xdrBytes, 0) };
     // Scan for sig count offset
     for (let n = 0; n <= 5; n++) {
       const off = xdrLen - (4 + n * 68);
@@ -184,7 +185,7 @@ export default {
       debug: debugInfo,
     }), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
   } catch (e) {
-    return new Response(JSON.stringify({ error: `__DEPOSIT_INIT__ failed: ${e.message}`, debug: typeof debugInfo !== 'undefined' ? debugInfo : 'not reached' }),
+    return new Response(JSON.stringify({ error: `__DEPOSIT_INIT__ failed: ${e.message}`, debug: debugInfo }),
       { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
   }
 }
@@ -204,7 +205,7 @@ export default {
       // LAYER 2: DOMAIN-SPECIFIC LIVE APIS
       if (/orderbook|sfetreas/i.test(lastUserMsg)) {
         try {
-          const r = await fetch('https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUCAA�4U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP');
+          const r = await fetch('https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUCAAµ4U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP');
           const d = await r.json();
           context += '\n[SFETREAS ORDERBOOK] Bids: ' + JSON.stringify(d.bids && d.bids.slice(0,3)) + '. Asks: ' + JSON.stringify(d.asks && d.asks.slice(0,3)) + '.';
         } catch(e) {}
@@ -280,7 +281,7 @@ export default {
         protocol += 'HOW YOU THINK:\n';
         protocol += 'Before answering, identify: what is actually being asked, what data above is relevant, what the direct answer is.\n';
         protocol += 'Then speak from that clarity.\n\n';
-        protocol += 'HOW YOU SPEAK8�� - State facts directly. No qualifiers. No "based on the search results" or "it appears that".\n';
+        protocol += 'HOW YOU SPEAK8µÔ - State facts directly. No qualifiers. No "based on the search results" or "it appears that".\n';
         protocol += '- Short declarative sentences for facts. Longer sentences for context and meaning.\n';
         protocol += '- Natural rhythm. Vary sentence length. Never monotone.\n';
         protocol += '- No bullet points unless the user asks for a list.\n';

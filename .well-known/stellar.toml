@@ -13,57 +13,32 @@ ACCOUNTS = [
   "GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW"
 ]
 
-SIGNING_KEY = "GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML"
-CLIENT_SIGNING_KEY = "GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW"
-TRANSFER_SERVER = "https://fiduciary-clearing-engine.onrender.com"
-WEB_AUTH_ENDPOINT = "https://fiduciary-clearing-engine.onrender.com"
-
-[DOCUMENTATION]
-ORG_NAME = "The SF Emerald Dynasty Trust"
-ORG_DBA = "SF Emerald Dynasty"
-ORG_URL = "https://sfe-dynasty.github.io"
-ORG_DESCRIPTION = "Programmatic asset value container managed via private trust relationship rules. Framework: US-SFE-PFIA-2025-T1A01."
-ORG_OFFICIAL_EMAIL = "ddennis@sfemeraldtrust.com"
-ORG_SUPPORT_EMAIL = "ddennis@sfemeraldtrust.com"
-
-[[CURRENCIES]]
-code = "SFETREAS"
+SIGNING_KEY = "GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLPOWATGRD7SNMCzIQOCEHMeˆ)1%9Q}M%9%9}-d€ô€‰Q5]1hÝTÝU](Í1LÙM	!-%1]ULÍE	1!Ía Ñ%i=A)!Õ)dˆ)QI9MI}MIYH€ô€‰¡ÑÑÁÌè¼½™¥‘Õ¥…Éäµ±•…É¥¹œµ•¹¥¹”¹½¹É•¹‘•È¹½´ˆ)]	}UQ!}9A=%9P€ô€‰¡ÑÑÁÌè¼½™¥‘Õ¥…Éäµ±•…É¥¹œµ•¹¥¹”¹½¹É•¹‘•È¹½´ˆ()m=U59QQ%=9t)=I}95€ô€‰Q¡”Mµ•É…±å¹…ÍÑäQÉÕÍÐˆ)=I}	€ô€‰Mµ•É…±å¹…ÍÑäˆ)=I}UI0€ô€‰¡ÑÑÁÌè¼½Í™”µ‘å¹…ÍÑä¹¥Ñ¡Õˆ¹¥¼ˆ)=I}MI%AQ%=8€ô€‰AÉ½É…µµ…Ñ¥Œ…ÍÍ•ÐÙ…±Õ”½¹Ñ…¥¹•Èµ…¹…•Ù¥„ÁÉ¥Ù…Ñ”ÑÉÕÍÐÉ•±…Ñ¥½¹Í¡¥ÀÉÕ±•Ì¸É…µ•Ý½É¬èULµMµA%´ÈÀÈÔµPÅÀÄ¸ˆ)=I}=%%1}5%0€ô€‰‘‘•¹¹¥ÍÍ™•µ•É…±‘ÑÉÕÍÐ¹½´ˆ)=I}MUAA=IQ}5%0€ô€‰‘‘•¹¹¥ÍÍ™•µ•É…±‘ÑÉÕÍÐ¹½´ˆ()mmUII9%Mut)½‘”€ô€‰MQILˆ)¥ÍÍÕ•È€ô€‰1]XÉI5ie95U	 ÔÑTÐÍ@Í5M]%Y= ÙM,ÙÑMY5eeHÍEM1-=@ˆ)‘¥ÍÁ±…å}‘•¥µ…±Ì€ô€È(¹…µ”€ô€‰AÉ¥Ù…Ñ”¥‘Õ¥…ÉäQÉÕÍÐQÉ•…ÍÕÉä%¹ÍÑÉÕµ•¹Ðˆ)¥Í}…ÍÍ•Ñ}…¹¡½É•€ôÑÉÕ”)…¹¡½É}…ÍÍ•Ñ}ÑåÁ”€ô€‰½Ñ¡•Èˆ)…¹¡½É}…ÍÍ•Ð€ô€‰½Ñ¡•Èˆ)ÍÑ…ÑÕÌ€ô€‰±¥Ù”ˆ)‘•ÍŒ€ô€‰AÉ½É…µµ…Ñ¥ŒÙ…±Õ”‰…­•…Ì‘½Õµ•¹Ñ•É¥¡ÑÌ¸AÉ¥µ…ÉäÕ¹¥Ð½˜…½Õ¹Ðè€Ä¸ÀÀUMÁ•ÈÕ¹¥Ð¸aTÕ¹¥Ðµ½˜µ…½Õ¹Ð‘•¹½µ¥¹…Ñ¥½¸…Ù…¥±…‰±”¸½¹ÑÉ…ÐÉ•™•É•¹”èULµMµA%´ÈÀÈÔµPÅÀÄ¸ˆ()mmUII9%Mut)½‘”€ô€‰MÈÀÈÕAQ8‚
+name = "Private Fiduciary Trust Instrument PTN"
 issuer = "GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP"
 display_decimals = 2
-name = "Private Fiduciary Trust Treasury Instrument"
 is_asset_anchored = true
 anchor_asset_type = "other"
 anchor_asset = "other"
 status = "live"
-desc = "Programmatic value backed as documented rights with a sole FE/Trust relationship. Primary unit of account: 1.00 USD per unit. XAU unit-of-account denomination available by reference to XAU spot price at time of issuance. No physical gold reserve required. Cleared through Fiduciary Executor Node GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML. Pipeline: ISO 20022 pacs.008 -> Moov ACH -> SFTPGo -> Fiduciary Clearing Engine. Contract reference: US-SFE-PFIA-2025-T1A01."
-
-[[CURRENCIES]]
-code = "SFE2025PTN"
-issuer = "GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP"
-display_decimals = 2
-name = "Private Fiduciary Trust Instrument PTN"
-is_asset_anchored = true
-anchor_asset_type = "other"
-anchor_asset = "other"
-status = "live"
-desc = "Private Trust Note Series 2025. Primary unit of account: 1.00 USD per unit. XAU unit-of-account denomination available. Credit value measurable against gold as a unit of account. No physical gold reserve required. Controlled via Fiduciary Executor Node GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML. Contract reference: US-SFE-PFIA-2025-T1A01."
+desc = "Private Trust Note Series 2025. Primary unit of account: 1.00 USD per unit. XAU unit-of-account denomination available. Contract reference: US-SFE-PFIA-2025-T1A01."
 
 [[CURRENCIES]]
 code = "SFE2025PSCI"
+name = "Private Fiduciary Trust Instrument PSCI"
 issuer = "GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP"
 display_decimals = 2
-name = "Private Fiduciary Trust Instrument PSCI"
 is_asset_anchored = true
 anchor_asset_type = "other"
 anchor_asset = "other"
 status = "live"
-desc = "Private Sovereign Credit Instrument. Primary unit of account: 1.00 USD per unit. XAU unit-of-account denomination available. Sovereign credit expressible in gold weight terms. No physical gold reserve required. Controlled via Fiduciary Executor Node GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML. Contract reference: US-SFE-PFIA-2025-T1A01."
+desc = "Private Sovereign Credit Instrument. Primary unit of account: 1.00 USD per unit. XAU unit-of-account denomination available. Contract reference: US-SFE-PFIA-2025-T1A01."
 
 [[CURRENCIES]]
 code = "USD"
-issuer = "GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3"
+issuer = "GCVDS3YYXQVFVVG4HSIARAHQJA@ÍQUM4³ÔH¡ÕOQGEZHEV4VN2CX5SAT3"
 display_decimals = 2
-name = "SF Emerald Dynasty USD Settlement Token"
+name = "SF Emerald Dynasty USD Settlement Token"
 is_asset_anchored = true
 anchor_asset_type = "fiat"
 anchor_asset = "USD"

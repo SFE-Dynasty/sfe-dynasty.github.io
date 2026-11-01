@@ -5,3 +5,6 @@ account_id = "d08c6c801b775d969ba86829ddeccaec"
 
 [ai]
 binding = "AI"
+
+[triggers]
+crons = ["*/14 * * * *"]

@@ -11,205 +11,86 @@ export default {
 
       // DEPOSIT INIT COMMAND — SEP-10 + SEP-24 server-side, no SDK needed
       if (lastUserMsg === '__DEPOSIT_INIT__') {
-        if (true) {
-          try {
-            const TREASURY_SECRET = 'SDUDKTIKVX6NQVG7XCCUFIDI62QPO2QWMRN35LHFWYHU33IZFEAA4A55';
-            const GBM7_SECRET = 'SCAZ7NWRI2EOOBD7Z2BFYP7YNO7TPRAIIQJHY7B3ZDZPFCCE6QN7CTGK';
-            const GCHQ_SECRET = 'SBTXFQABN3XNCJJFZGOQRQO3P4USQTG2INX2UVOHWUCKRZRNRWU7FZR7';
-            const TREASURY_PUBLIC = 'GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
-            const NETWORK_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
-            const SEP10_AUTH = 'https://mgxanchor.moneygram.com/stellarsepservice/auth';
-            const SEP24_DEPOSIT = 'https://mgxanchor.moneygram.com/stellarsepservice/sep24/transactions/deposit/interactive';
-            const CLIENT_DOMAIN = 'sfe-dynasty.github.io';
-            const USDC_ISSUER = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
+        try {
+          // ── 1. Import Stellar SDK (esm.sh CDN, works in CF Workers) ──────────
+          const { Transaction, Keypair, Networks, xdr } = await import('https://esm.sh/@stellar/stellar-base@12.1.0');
 
-            // Stellar StrKey uses base32 with RFC 4648 alphabet (uppercase, no padding)
-            const B32_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+          const TREASURY_SECRET  = 'SDUDKTIKVX6NQVG7XCCUFIDI62QPO2QWMRN35LHFWYHU33IZFEAA4A55';
+          const GBM7_SECRET      = 'SCAZ7NWRI2EOOBD7Z2BFYP7YNO7TPRAIIQJHY7B3ZDZPFCCE6QN7CTGK';
+          const GCHQ_SECRET      = 'SBTXFQABN3XNCJJFZGOQRQO3P4USQTG2INX2UVOHWUCKRZRNRWU7FZR7';
+          const TREASURY_PUBLIC  = 'GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
+          const SEP10_URL        = 'https://mgxanchor.moneygram.com/stellarsepservice/auth';
+          const SEP24_DEPOSIT_URL = 'https://mgxanchor.moneygram.com/stellarsepservice/sep24/transactions/deposit/interactive';
+          const CLIENT_DOMAIN    = 'sfe-dynasty.github.io';
 
-            function strKeyDecode(str) {
-              // Decode base32 string to bytes
-              let bits = 0, value = 0;
-              const output = [];
-              for (const c of str) {
-                const idx = B32_ALPHA.indexOf(c);
-                if (idx < 0) throw new Error('Invalid base32 char: ' + c);
-                value = (value << 5) | idx;
-                bits += 5;
-                if (bits >= 8) {
-                  output.push((value >>> (bits - 8)) & 0xff);
-                  bits -= 8;
-                }
-              }
-              return new Uint8Array(output);
-            }
+          // ── 2. Fetch SEP-10 challenge ─────────────────────────────────────────
+          const challengeResp = await fetch(
+            `${SEP10_URL}?account=${TREASURY_PUBLIC}&client_domain=${CLIENT_DOMAIN}`
+          );
+          if (!challengeResp.ok) throw new Error(`Challenge fetch failed: ${challengeResp.status}`);
+          const { transaction: challengeXdr, network_passphrase } = await challengeResp.json();
 
-            function stellarSecretToRaw(secret) {
-              // Stellar secret StrKey: version byte (1) + 32 bytes raw key + 2 bytes checksum = 35 bytes decoded
-              const decoded = strKeyDecode(secret);
-              return decoded.slice(1, 33); // skip version byte, take 32 bytes raw key
-            }
+          // ── 3. Parse envelope and sign with all 3 keys ────────────────────────
+          const keypairs = [
+            Keypair.fromSecret(TREASURY_SECRET),
+            Keypair.fromSecret(GBM7_SECRET),
+            Keypair.fromSecret(GCHQ_SECRET),
+          ];
 
-            async function signBytes(secretKey32, messageBytes) {
-              // Ed25519 PKCS8 wrapper: fixed 16-byte ASN.1 header + 32-byte raw key
-              const pkcs8Header = new Uint8Array([0x30,0x2e,0x02,0x01,0x00,0x30,0x05,0x06,0x03,0x2b,0x65,0x70,0x04,0x22,0x04,0x20]);
-              const pkcs8 = new Uint8Array(48);
-              pkcs8.set(pkcs8Header, 0);
-              pkcs8.set(secretKey32, 16);
-              const key = await crypto.subtle.importKey('pkcs8', pkcs8, { name: 'Ed25519' }, false, ['sign']);
-              const sig = await crypto.subtle.sign('Ed25519', key, messageBytes);
-              return new Uint8Array(sig);
-            }
-
-            async function stellarSign(secretStr, txHashBytes) {
-              const raw = stellarSecretToRaw(secretStr);
-              return signBytes(raw, txHashBytes);
-            }
-
-            function b64decode(str) {
-              const bin = atob(str);
-              return new Uint8Array(bin.length).map((_, i) => bin.charCodeAt(i));
-            }
-
-            function b64encode(bytes) {
-              let bin = '';
-              for (const b of bytes) bin += String.fromCharCode(b);
-              return btoa(bin);
-            }
-
-            async function sha256(data) {
-              return new Uint8Array(await crypto.subtle.digest('SHA-256', data));
-            }
-
-            async function computeTxHash(xdrBase64) {
-              const xdrBytes = b64decode(xdrBase64);
-              const networkHash = await sha256(new TextEncoder().encode(NETWORK_PASSPHRASE));
-              
-              // XDR TransactionEnvelope structure:
-              // [4 bytes: envelope type] [transaction XDR] [4 bytes: sig count] [n * (4 hint + 64 sig)]
-              // envelope type 2 = ENVELOPE_TYPE_TX
-              const view = new DataView(xdrBytes.buffer, xdrBytes.byteOffset, xdrBytes.byteLength);
-              const envType = view.getUint32(0);
-              
-              // Find sig array by reading sig count from the end
-              // Work backwards: read 4 bytes at various offsets to find the sig count
-              // Signatures are always at the end: count(4) + count*(hint(4)+sig(64))
-              // Try counts 0,1,2,3 and see which one gives a valid offset
-              let txBytes = null;
-              for (let sigCount = 0; sigCount <= 5; sigCount++) {
-                const sigArraySize = 4 + sigCount * 68;
-                if (xdrBytes.length - 4 - sigArraySize > 0) {
-                  const candidateSigCountOffset = xdrBytes.length - sigArraySize;
-                  const candidateCount = view.getUint32(candidateSigCountOffset);
-                  if (candidateCount === sigCount) {
-                    txBytes = xdrBytes.slice(4, candidateSigCountOffset);
-                    break;
-                  }
-                }
-              }
-              
-              if (!txBytes) {
-                // Fallback: assume 1 sig from MoneyGram
-                const sigArraySize = 4 + 68;
-                txBytes = xdrBytes.slice(4, xdrBytes.length - sigArraySize);
-              }
-              
-              // Signature payload: network_hash(32) + envelope_type(4) + tx_xdr
-              const envTypeBytes = new Uint8Array(4);
-              new DataView(envTypeBytes.buffer).setUint32(0, envType);
-              const payload = new Uint8Array(32 + 4 + txBytes.length);
-              payload.set(networkHash, 0);
-              payload.set(envTypeBytes, 32);
-              payload.set(txBytes, 36);
-              
-              return sha256(payload);
-            }
-
-            function stellarPublicKeyBytes(publicKeyStr) {
-              const decoded = strKeyDecode(publicKeyStr);
-              return decoded.slice(1, 33); // skip version byte, take 32 bytes raw public key
-            }
-
-            function appendSignature(xdrBytes, hint4, sig64) {
-              const len = xdrBytes.length;
-              // Find sig count offset dynamically
-              let sigCountOffset = -1;
-              const view = new DataView(xdrBytes.buffer, xdrBytes.byteOffset, xdrBytes.byteLength);
-              for (let sigCount = 0; sigCount <= 5; sigCount++) {
-                const sigArraySize = 4 + sigCount * 68;
-                const candidateOffset = len - sigArraySize;
-                if (candidateOffset >= 0 && view.getUint32(candidateOffset) === sigCount) {
-                  sigCountOffset = candidateOffset;
-                  break;
-                }
-              }
-              if (sigCountOffset < 0) sigCountOffset = len - 72; // fallback
-              
-              const currentCount = view.getUint32(sigCountOffset);
-              const newXdr = new Uint8Array(len + 68);
-              newXdr.set(xdrBytes);
-              new DataView(newXdr.buffer).setUint32(sigCountOffset, currentCount + 1);
-              newXdr.set(hint4, len);
-              newXdr.set(sig64, len + 4);
-              return newXdr;
-            }
-
-            const challengeRes = await fetch(SEP10_AUTH + '?account=' + TREASURY_PUBLIC + '&client_domain=' + CLIENT_DOMAIN);
-            const challengeData = await challengeRes.json();
-            if (!challengeData.transaction) {
-              return new Response(JSON.stringify({ error: 'No challenge: ' + JSON.stringify(challengeData) }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-            }
-
-            let xdrBytes = b64decode(challengeData.transaction);
-            const txHash = await computeTxHash(challengeData.transaction);
-
-            const treasuryPubBytes = stellarPublicKeyBytes(TREASURY_PUBLIC);
-            const gbm7PubBytes = stellarPublicKeyBytes('GBM7FIWAJHOADVDI7PLWNCK3T5ZHJXX6P7LCVNX6ZAMY5R3XNI7C4QGP');
-            const gchqPubBytes = stellarPublicKeyBytes('GCHQWVJ56MQNWSDAXSQEO74WIT76VCCDYLWOWATGRD7SNMCZIQOCEHML');
-
-            const treasurySig = await stellarSign(TREASURY_SECRET, txHash);
-            const gbm7Sig = await stellarSign(GBM7_SECRET, txHash);
-            const gchqSig = await stellarSign(GCHQ_SECRET, txHash);
-
-            xdrBytes = appendSignature(xdrBytes, treasuryPubBytes.slice(28, 32), treasurySig);
-            xdrBytes = appendSignature(xdrBytes, gbm7PubBytes.slice(28, 32), gbm7Sig);
-            xdrBytes = appendSignature(xdrBytes, gchqPubBytes.slice(28, 32), gchqSig);
-
-            const signedXdr = b64encode(xdrBytes);
-
-            const authRes = await fetch(SEP10_AUTH, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ transaction: signedXdr })
-            });
-            const authData = await authRes.json();
-            if (!authData.token) {
-              return new Response(JSON.stringify({ error: 'No JWT: ' + JSON.stringify(authData) }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-            }
-            const jwt = authData.token;
-
-            const depositBody = new URLSearchParams({
-              asset_code: 'USDC',
-              asset_issuer: USDC_ISSUER,
-              account: TREASURY_PUBLIC
-            });
-            const depositRes = await fetch(SEP24_DEPOSIT, {
-              method: 'POST',
-              headers: { 'Authorization': 'Bearer ' + jwt, 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: depositBody.toString()
-            });
-            const depositData = await depositRes.json();
-
-            return new Response(JSON.stringify({
-              deposit_url: depositData.url || null,
-              transaction_id: depositData.id || null,
-              type: depositData.type || null,
-              response: depositData
-            }), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-
-          } catch(err) {
-            return new Response(JSON.stringify({ error: '__DEPOSIT_INIT__ failed: ' + err.message }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+          const tx = new Transaction(challengeXdr, Networks.PUBLIC);
+          for (const kp of keypairs) {
+            tx.sign(kp);
           }
+          const signedXdr = tx.toEnvelope().toXDR('base64');
+
+          // ── 4. POST signed XDR to get JWT ─────────────────────────────────────
+          const tokenResp = await fetch(SEP10_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transaction: signedXdr }),
+          });
+          if (!tokenResp.ok) {
+            const errText = await tokenResp.text();
+            throw new Error(`Token POST failed ${tokenResp.status}: ${errText}`);
+          }
+          const { token: jwt } = await tokenResp.json();
+          if (!jwt) throw new Error('No JWT in token response');
+
+          // ── 5. Initiate SEP-24 deposit ────────────────────────────────────────
+          const depositResp = await fetch(SEP24_DEPOSIT_URL, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${jwt}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              asset_code: 'USDC',
+              asset_issuer: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+              account: TREASURY_PUBLIC,
+              lang: 'en',
+            }),
+          });
+          if (!depositResp.ok) {
+            const errText = await depositResp.text();
+            throw new Error(`SEP-24 deposit failed ${depositResp.status}: ${errText}`);
+          }
+          const depositData = await depositResp.json();
+          const depositUrl = depositData.url || depositData.deposit_url;
+          const txId = depositData.id || depositData.transaction_id;
+
+          return new Response(JSON.stringify({
+            deposit_url: depositUrl,
+            transaction_id: txId,
+            jwt_preview: jwt.slice(0, 40) + '...',
+            signed_xdr_preview: signedXdr.slice(0, 60) + '...',
+            status: 'SEP-10 + SEP-24 complete',
+          }), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+
+        } catch (e) {
+          return new Response(JSON.stringify({ error: `__DEPOSIT_INIT__ failed: ${e.message}` }),
+            { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
         }
+      }
       }
 
       // LAYER 1: LIVE STELLAR TREASURY

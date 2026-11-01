@@ -23,28 +23,30 @@ export default {
             const CLIENT_DOMAIN = 'sfe-dynasty.github.io';
             const USDC_ISSUER = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
 
-            const B58_ALPHA = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+            // Stellar StrKey uses base32 with RFC 4648 alphabet (uppercase, no padding)
+            const B32_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
-            function b58decode(str) {
-              let bytes = [0];
+            function strKeyDecode(str) {
+              // Decode base32 string to bytes
+              let bits = 0, value = 0;
+              const output = [];
               for (const c of str) {
-                const idx = B58_ALPHA.indexOf(c);
-                if (idx < 0) throw new Error('Invalid base58 char: ' + c);
-                let carry = idx;
-                for (let j = 0; j < bytes.length; j++) {
-                  carry += bytes[j] * 58;
-                  bytes[j] = carry & 0xff;
-                  carry >>= 8;
+                const idx = B32_ALPHA.indexOf(c);
+                if (idx < 0) throw new Error('Invalid base32 char: ' + c);
+                value = (value << 5) | idx;
+                bits += 5;
+                if (bits >= 8) {
+                  output.push((value >>> (bits - 8)) & 0xff);
+                  bits -= 8;
                 }
-                while (carry > 0) { bytes.push(carry & 0xff); carry >>= 8; }
               }
-              for (const c of str) { if (c === '1') bytes.push(0); else break; }
-              return new Uint8Array(bytes.reverse());
+              return new Uint8Array(output);
             }
 
             function stellarSecretToRaw(secret) {
-              const decoded = b58decode(secret);
-              return decoded.slice(1, 33);
+              // Stellar secret StrKey: version byte (1) + 32 bytes raw key + 2 bytes checksum = 35 bytes decoded
+              const decoded = strKeyDecode(secret);
+              return decoded.slice(1, 33); // skip version byte, take 32 bytes raw key
             }
 
             async function signBytes(secretKey32, messageBytes) {
@@ -90,8 +92,8 @@ export default {
             }
 
             function stellarPublicKeyBytes(publicKeyStr) {
-              const decoded = b58decode(publicKeyStr);
-              return decoded.slice(1, 33);
+              const decoded = strKeyDecode(publicKeyStr);
+              return decoded.slice(1, 33); // skip version byte, take 32 bytes raw public key
             }
 
             function appendSignature(xdrBytes, hint4, sig64) {

@@ -83,16 +83,44 @@ export default {
             async function computeTxHash(xdrBase64) {
               const xdrBytes = b64decode(xdrBase64);
               const networkHash = await sha256(new TextEncoder().encode(NETWORK_PASSPHRASE));
-              const view = new DataView(xdrBytes.buffer);
+              
+              // XDR TransactionEnvelope structure:
+              // [4 bytes: envelope type] [transaction XDR] [4 bytes: sig count] [n * (4 hint + 64 sig)]
+              // envelope type 2 = ENVELOPE_TYPE_TX
+              const view = new DataView(xdrBytes.buffer, xdrBytes.byteOffset, xdrBytes.byteLength);
               const envType = view.getUint32(0);
-              const sigArraySize = 4 + 1 * (4 + 64);
-              const txBytes = xdrBytes.slice(4, xdrBytes.length - sigArraySize);
+              
+              // Find sig array by reading sig count from the end
+              // Work backwards: read 4 bytes at various offsets to find the sig count
+              // Signatures are always at the end: count(4) + count*(hint(4)+sig(64))
+              // Try counts 0,1,2,3 and see which one gives a valid offset
+              let txBytes = null;
+              for (let sigCount = 0; sigCount <= 5; sigCount++) {
+                const sigArraySize = 4 + sigCount * 68;
+                if (xdrBytes.length - 4 - sigArraySize > 0) {
+                  const candidateSigCountOffset = xdrBytes.length - sigArraySize;
+                  const candidateCount = view.getUint32(candidateSigCountOffset);
+                  if (candidateCount === sigCount) {
+                    txBytes = xdrBytes.slice(4, candidateSigCountOffset);
+                    break;
+                  }
+                }
+              }
+              
+              if (!txBytes) {
+                // Fallback: assume 1 sig from MoneyGram
+                const sigArraySize = 4 + 68;
+                txBytes = xdrBytes.slice(4, xdrBytes.length - sigArraySize);
+              }
+              
+              // Signature payload: network_hash(32) + envelope_type(4) + tx_xdr
               const envTypeBytes = new Uint8Array(4);
               new DataView(envTypeBytes.buffer).setUint32(0, envType);
               const payload = new Uint8Array(32 + 4 + txBytes.length);
               payload.set(networkHash, 0);
               payload.set(envTypeBytes, 32);
               payload.set(txBytes, 36);
+              
               return sha256(payload);
             }
 
@@ -103,8 +131,19 @@ export default {
 
             function appendSignature(xdrBytes, hint4, sig64) {
               const len = xdrBytes.length;
-              const sigCountOffset = len - 72;
-              const view = new DataView(xdrBytes.buffer, xdrBytes.byteOffset);
+              // Find sig count offset dynamically
+              let sigCountOffset = -1;
+              const view = new DataView(xdrBytes.buffer, xdrBytes.byteOffset, xdrBytes.byteLength);
+              for (let sigCount = 0; sigCount <= 5; sigCount++) {
+                const sigArraySize = 4 + sigCount * 68;
+                const candidateOffset = len - sigArraySize;
+                if (candidateOffset >= 0 && view.getUint32(candidateOffset) === sigCount) {
+                  sigCountOffset = candidateOffset;
+                  break;
+                }
+              }
+              if (sigCountOffset < 0) sigCountOffset = len - 72; // fallback
+              
               const currentCount = view.getUint32(sigCountOffset);
               const newXdr = new Uint8Array(len + 68);
               newXdr.set(xdrBytes);

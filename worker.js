@@ -91,7 +91,6 @@ export default {
             { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
         }
       }
-      }
 
       // LAYER 1: LIVE STELLAR TREASURY
       try {

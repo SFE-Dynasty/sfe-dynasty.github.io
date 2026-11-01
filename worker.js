@@ -10,10 +10,8 @@ export default {
       let context = '';
 
       // DEPOSIT INIT COMMAND — SEP-10 + SEP-24 server-side, no SDK needed
-      if (request.method === 'POST') {
-        let bodyCheck;
-        try { bodyCheck = await request.clone().json(); } catch(e) {}
-        if (bodyCheck && bodyCheck.messages && bodyCheck.messages.filter(m => m.role === 'user').pop()?.content === '__DEPOSIT_INIT__') {
+      if (lastUserMsg === '__DEPOSIT_INIT__') {
+        if (true) {
           try {
             const TREASURY_SECRET = 'SDUDKTIKVX6NQVG7XCCUFIDI62QPO2QWMRN35LHFWYHU33IZFEAA4A55';
             const GBM7_SECRET = 'SCAZ7NWRI2EOOBD7Z2BFYP7YNO7TPRAIIQJHY7B3ZDZPFCCE6QN7CTGK';
@@ -21,7 +19,7 @@ export default {
             const TREASURY_PUBLIC = 'GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
             const NETWORK_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
             const SEP10_AUTH = 'https://mgxanchor.moneygram.com/stellarsepservice/auth';
-            const SEP24_DEPOSIT = 'https://mgxanchor.moneygram.com/stellarservice/sep24/transactions/deposit/interactive';
+            const SEP24_DEPOSIT = 'https://mgxanchor.moneygram.com/stellarsepservice/sep24/transactions/deposit/interactive';
             const CLIENT_DOMAIN = 'sfe-dynasty.github.io';
             const USDC_ISSUER = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
 

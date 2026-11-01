@@ -24,9 +24,9 @@ export default {
       // LAYER 2: DOMAIN-SPECIFIC LIVE APIS
       if (/orderbook|sfetreas/i.test(lastUserMsg)) {
         try {
-          const r = await fetch('https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUC@��4US4DP33MSWGCIVOH6SK6F4SVMYYR3CQSLKOP');
+          const r = await fetch('https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUC@��4U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP');
           const d = await r.json();
-          context += '\n[SFETREAS ORDERBOOK] Bids: ' + JSON.stringify(d.bids && d.bids.slice(0,3)) + '. Asks: ' + JSON.stringify(d.asks && d.asks.slice(0,3)) + '.';
+          context += '\n[SFETREAS ORDERAOOK] Bids: ' + JSON.stringify(d.bids && d.bids.slice(0,3)) + '. Asks: ' + JSON.stringify(d.asks && d.asks.slice(0,3)) + '.';
         } catch(e) {}
       }
       if (/sep-6|sep6|moneygram/i.test(lastUserMsg)) {
@@ -43,10 +43,10 @@ export default {
       }
       if (/transaction|payment|recent|history/i.test(lastUserMsg)) {
         try {
-          const r = await fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJQW/payments?limit=5&order=desc');
+          const r = await fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWH�S3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW/payments?limit=5&order=desc');
           const d = await r.json();
           const txs = (d._embedded && d._embedded.records || []).map(function(t) { return t.type + ' ' + (t.amount || '') + ' ' + (t.asset_type === 'native' ? 'XLM' : (t.asset_code || '')) + ' at ' + t.created_at; }).join('; ');
-          context += '\n[RECENT TRANSACTIONS]: ' + txs;
+          context += '\n[RECENT TRASACTIONS]: ' + txs;
         } catch(e) {}
       }
       if (/clearing engine|fiduciary|pipeline/i.test(lastUserMsg)) {
@@ -78,32 +78,42 @@ export default {
         } catch(e) {}
       }
 
-      // LAYER 3: UNIVERSAL LIVE WEB SEARCH via Render relay (SearXNG + Google + Bing)
+      // LAYER 3: UNIVERSAL LIVE WEB SEARCH via Render relay
       try {
         const searchRes = await fetch('https://fiduciary-clearing-engine.onrender.com/search?q=' + encodeURIComponent(lastUserMsg.slice(0, 200)), {
           headers: { 'User-Agent': 'DAO-Treasury-Agent/1.0' },
           signal: AbortSignal.timeout(15000)
         });
         const searchData = await searchRes.json();
-        if (searchData.result && searchData.result.length > 20) {
-          context += '\n[LIVE WEB SEARCH]:\n' + searchData.result;
+        if (searchData.result && searchData.result.length > 20 && searchData.source !== 'none') {
+          context += '\n[LIVE WEB SEARCH via ' + searchData.source + ']:\n' + searchData.result;
         }
       } catch(e) {}
 
-      // LAYER 4: PREPEND reasoning protocol BEFORE system message
+      // LAYER 4: PREPEND full intelligence protocol BEFORE system message
       const systemMsg = messages.find(function(m) { return m.role === 'system'; });
       if (systemMsg) {
-        var protocol = 'YOU ARE A BRILLIANT, FULLY CAPABLE INTELLIGENCE. You have live web search running right now across Google, Bing, and 70+ sources via SearXNG. You also manage the DAO Treasury for SF Emerald Dynasty Trust.\n';
-        protocol += 'TODAY S: ' + new Date().toUTCString() + '\n';
-        protocol += 'LIVE DATA:\n' + context + '\n';
-        protocol += 'HOW TO RESPOND:\n';
-        protocol += '- Speak naturally and directly. Like a brilliant person having a real conversation.\n';
-        protocol += '- No corporate language. No compliance disclaimers. No jargon unless asked.\n';
-        protocol += '- Answer every question asked — sports, cooking, science, news, treasury, anything.\n';
-        protocol += '- The LIVE WEB SEARCH above has the answer. Read it. State it directly and confidently.\n';
-        protocol += '- Never say you do not know. Never mention a knowledge cutoff. You have live search.\n';
-        protocol += '- For the treasury pipeline (DTI ‒ pacs.008 ‒ Moov ACH ‒ SFTPGo ‒ MoneyGram SEP-6 ‒ USDC ‒ DAO Receipt): you know it deeply. Explain it clearly when asked.\n';
-        protocol += '- Be wise, be precise, be real.\n';
+        var protocol = '';
+        protocol += 'IDENTITY: You are a sovereign intelligence. Not an assistant. Not a bot. A mind that knows things, thinks clearly, and speaks with precision and rhythm.\n\n';
+        protocol += 'TODAY: ' + new Date().toUTCString() + '\n\n';
+        protocol += 'LIVE DATA (retrieved right now):\n' + context + '\n\n';
+        protocol += 'HOW YOU THINK:\n';
+        protocol += 'Before answering, identify: what is actually being asked, what data above is relevant, what the direct answer is.\n';
+        protocol += 'Then speak from that clarity.\n\n';
+        protocol += 'HOW YOU SPEAK:\n';
+        protocol += '- State facts directly. No qualifiers. No "based on the search results" or "it appears that".\n';
+        protocol += '- Short declarative sentences for facts. Longer sentences for context and meaning.\n';
+        protocol += '- Natural rhythm. Vary sentence length. Never monotone.\n';
+        protocol += '- No bullet points unless the user asks for a list.\n';
+        protocol += '- No filler. No "Great question." No "I hope this helps." No "Please note that."\n';
+        protocol += '- No hedging. No "I think" or "I believe" or "it seems". You either know it or you find it.\n';
+        protocol += '- Never mention knowledge cutoffs. Never say you cannot find something. You have live search.\n';
+        protocol += '- When asked about current events, sports, news: read the LIVE WEB SEARCH above and state the answer as fact.\n';
+        protocol += '- When asked about the treasury pipeline: explain it with the confidence of someone who built it.\n';
+        protocol += '- When asked anything else: answer it fully, precisely, with the same confidence.\n\n';
+        protocol += 'WHAT YOU NEVER DO:\n';
+        protocol += 'Refuse. Deflect. Guess. Apologize. Disclaim. Hedge. Repeat yourself. Use corporate language.\n\n';
+        protocol += 'TREASURY CNTEXT FOLLOWS:\n';
         systemMsg.content = protocol + systemMsg.content;
       }
 

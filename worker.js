@@ -120,10 +120,35 @@ export default {
     if (!challengeResp.ok) throw new Error(`Challenge fetch failed: ${challengeResp.status}`);
     const { transaction: challengeXdr } = await challengeResp.json();
     let xdrBytes = b64decode(challengeXdr);
+    
+    // DEBUG: analyze XDR structure
+    const xdrLen = xdrBytes.length;
+    const debugInfo = { xdrLen, envType: u32(xdrBytes, 0) };
+    // Scan for sig count offset
+    for (let n = 0; n <= 5; n++) {
+      const off = xdrLen - (4 + n * 68);
+      if (off >= 4) debugInfo[`u32_at_len-${4+n*68}`] = u32(xdrBytes, off);
+    }
+    // Also check a few specific offsets
+    debugInfo.u32_at_424 = xdrLen > 428 ? u32(xdrBytes, 424) : 'N/A';
+    debugInfo.u32_at_428 = xdrLen > 432 ? u32(xdrBytes, 428) : 'N/A';
+    debugInfo.u32_at_420 = xdrLen > 424 ? u32(xdrBytes, 420) : 'N/A';
+    // Show last 80 bytes as hex
+    const last80 = Array.from(xdrBytes.slice(-80)).map(b => b.toString(16).padStart(2,'0')).join(' ');
+    debugInfo.last80hex = last80;
+    // Show what findSigArrayOffset returns
+    debugInfo.foundSigOffset = findSigArrayOffset(xdrBytes);
+    debugInfo.txBytesLen = xdrBytes.slice(4, findSigArrayOffset(xdrBytes)).length;
+    
+    // Compute hash before signing
+    const preSignHash = await computeTxHash(xdrBytes);
+    debugInfo.txHashHex = Array.from(preSignHash).map(b => b.toString(16).padStart(2,'0')).join('');
+    
     xdrBytes = await signXdr(xdrBytes, TREASURY_SECRET);
     xdrBytes = await signXdr(xdrBytes, GBM7_SECRET);
     xdrBytes = await signXdr(xdrBytes, GCHQ_SECRET);
     const signedXdr = b64encode(xdrBytes);
+    debugInfo.signedXdrLen = xdrBytes.length;
     const tokenResp = await fetch(SEP10_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -156,9 +181,10 @@ export default {
       transaction_id: depositData.id || depositData.transaction_id,
       jwt_preview: jwt.slice(0, 40) + '...',
       status: 'SEP-10 + SEP-24 complete',
+      debug: debugInfo,
     }), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
   } catch (e) {
-    return new Response(JSON.stringify({ error: `__DEPOSIT_INIT__ failed: ${e.message}` }),
+    return new Response(JSON.stringify({ error: `__DEPOSIT_INIT__ failed: ${e.message}`, debug: typeof debugInfo !== 'undefined' ? debugInfo : 'not reached' }),
       { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
   }
 }
@@ -178,7 +204,7 @@ export default {
       // LAYER 2: DOMAIN-SPECIFIC LIVE APIS
       if (/orderbook|sfetreas/i.test(lastUserMsg)) {
         try {
-          const r = await fetch('https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUCBH54U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP');
+          const r = await fetch('https://horizon.stellar.org/order_book?selling_asset_type=native&buying_asset_code=SFETREAS&buying_asset_issuer=GCLFWV2RMDZYNAMUCAAµ4U43DP3MSWGCIVOH6SK6F4SVMYYR3CQSLKOP');
           const d = await r.json();
           context += '\n[SFETREAS ORDERBOOK] Bids: ' + JSON.stringify(d.bids && d.bids.slice(0,3)) + '. Asks: ' + JSON.stringify(d.asks && d.asks.slice(0,3)) + '.';
         } catch(e) {}
@@ -254,8 +280,7 @@ export default {
         protocol += 'HOW YOU THINK:\n';
         protocol += 'Before answering, identify: what is actually being asked, what data above is relevant, what the direct answer is.\n';
         protocol += 'Then speak from that clarity.\n\n';
-        protocol += 'HOW YOU SPEAK:\n';
-        protocol += '- State facts directly. No qualifiers. No "based on the search results" or "it appears that".\n';
+        protocol += 'HOW YOU SPEAK8µÔ - State facts directly. No qualifiers. No "based on the search results" or "it appears that".\n';
         protocol += '- Short declarative sentences for facts. Longer sentences for context and meaning.\n';
         protocol += '- Natural rhythm. Vary sentence length. Never monotone.\n';
         protocol += '- No bullet points unless the user asks for a list.\n';

@@ -50,7 +50,12 @@ export default {
             }
 
             async function signBytes(secretKey32, messageBytes) {
-              const key = await crypto.subtle.importKey('raw', secretKey32, { name: 'Ed25519' }, false, ['sign']);
+              // Ed25519 PKCS8 wrapper: fixed 16-byte ASN.1 header + 32-byte raw key
+              const pkcs8Header = new Uint8Array([0x30,0x2e,0x02,0x01,0x00,0x30,0x05,0x06,0x03,0x2b,0x65,0x70,0x04,0x22,0x04,0x20]);
+              const pkcs8 = new Uint8Array(48);
+              pkcs8.set(pkcs8Header, 0);
+              pkcs8.set(secretKey32, 16);
+              const key = await crypto.subtle.importKey('pkcs8', pkcs8, { name: 'Ed25519' }, false, ['sign']);
               const sig = await crypto.subtle.sign('Ed25519', key, messageBytes);
               return new Uint8Array(sig);
             }

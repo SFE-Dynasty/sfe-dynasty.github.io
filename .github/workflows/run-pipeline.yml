@@ -1,0 +1,36 @@
+name: Run USD Deployment Pipeline (Newman)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    name: Newman Pipeline Runner
+    steps:
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Start Moov ACH Container
+        run: |
+          docker pull moov/ach:latest
+          docker run -d -p 8080:8080 --name moov-ach-container moov/ach:latest
+          sleep 5
+          echo "Moov ACH container started on port 8080"
+
+      - name: Run USD Deployment Pipeline
+        run: |
+          newman run "https://api.postman.com/collections/58965602-35e8dc50-e91f-4217-ac4c-f6324399c9bb?apikey=${{ secrets.POSTMAN_API_KEY }}" \
+            --environment "https://api.postman.com/environments/58965602-65597d28-8a69-4aea-9502-074dd65f0897?apikey=${{ secrets.POSTMAN_API_KEY }}" \
+            --reporters cli,json \
+            --reporter-json-export ./pipeline-results.json \
+            --delay-request 2000 \
+            --timeout-request 30000 \
+            --bail || true
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-results
+          path: ./pipeline-results.json

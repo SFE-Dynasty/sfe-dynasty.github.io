@@ -10,7 +10,7 @@ if (!apiKey) {
 const existingEnv: string = existsSync(".env")
   ? readFileSync(".env", "utf8")
   : "";
-if (/^CIRCLEE_ENTITY_SECRET=/m.test(existingEnv)) {
+if (/^CIRCLE_ENTITY_SECRET=/m.test(existingEnv)) {
   throw new Error(
     "CIRCLE_ENTITY_SECRET already exists in .env. Refusing to overwrite it.",
   );
@@ -19,7 +19,7 @@ if (/^CIRCLEE_ENTITY_SECRET=/m.test(existingEnv)) {
 const entitySecret: string = randomBytes(32).toString("hex");
 const recoveryFilePath: string = "./recovery";
 
-MkdirSync(recoveryFilePath, { recursive: true });
+mkdirSync(recoveryFilePath, { recursive: true });
 
 await registerEntitySecretCiphertext({
   apiKey,

@@ -2,12 +2,12 @@ import { randomBytes } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { registerEntitySecretCiphertext } from "@circle-fin/developer-controlled-wallets";
 
-const apiKey: string | undefined = process.env.CIRCLE_API_KEY;
+const apiKey = process.env.CIRCLE_API_KEY;
 if (!apiKey) {
   throw new Error("CIRCLE_API_KEY is required. Set it in .env first.");
 }
 
-const existingEnv: string = existsSync(".env")
+const existingEnv = existsSync(".env")
   ? readFileSync(".env", "utf8")
   : "";
 if (/^CIRCLE_ENTITY_SECRET=/m.test(existingEnv)) {
@@ -16,10 +16,10 @@ if (/^CIRCLE_ENTITY_SECRET=/m.test(existingEnv)) {
   );
 }
 
-const entitySecret: string = randomBytes(32).toString("hex");
-const recoveryFilePath: string = "./recovery";
+const entitySecret = randomBytes(32).toString("hex");
+const recoveryFilePath = "./recovery";
 
-mkdirSync(recoveryFilePath, { recursive: true });
+MkdirSync(recoveryFilePath, { recursive: true });
 
 await registerEntitySecretCiphertext({
   apiKey,

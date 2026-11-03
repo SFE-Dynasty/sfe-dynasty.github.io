@@ -120,7 +120,7 @@ export default {
       return appendSignature(xdrBytes, hint, sig);
     }
     const challengeResp = await fetch(
-      `${SEP10_URL}?account=${TREASUY_PUBLIC}&client_domain=${CLIENT_DOMAIN}`
+      `${SEP10_URL}?account=${TREASURY_PUBLIC}&client_domain=${CLIENT_DOMAIN}`
     );
     if (!challengeResp.ok) throw new Error(`Challenge fetch failed: ${challengeResp.status}`);
     const { transaction: challengeXdr } = await challengeResp.json();

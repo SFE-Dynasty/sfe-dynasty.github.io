@@ -15,18 +15,33 @@ jobs:
         run: |
           docker pull moov/ach:latest
           docker run -d -p 8080:8080 --name moov-ach-container moov/ach:latest
-          sleep 5
-          echo "Moov ACH container started on port 8080"
+          echo "Waiting for Moov ACH container to be healthy..."
+          for i in $(seq 1 20); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ping)
+            if [ "$STATUS" = "200" ]; then
+              echo "Moov ACH container healthy on port 8080 (attempt $i)"
+              break
+            fi
+            echo "Attempt $i: not ready yet (HTTP $STATUS), retrying in 2s..."
+            sleep 2
+          done
+          curl -s http://localhost:8080/ping && echo "PONG confirmed"
 
       - name: Run USD Deployment Pipeline
         run: |
-          newman run "https://api.postman.com/collections/58965602-35e8dc50-e91f-4217-ac4c-f6324399c9bb?apikey=${{ secrets.POSTMAN_API_KEY }}" \
-            --environment "https://api.postman.com/environments/58965602-65597d28-8a69-4aea-9502-074dd65f0897?apikey=${{ secrets.POSTMAN_API_KEY }}" \
+          newman run "https://api.postman.com/collections/58965602-35e8dc50-e91f-4217-ac4c-f6324399c9bb?apikey=${{ secrets.POSTSA_API_KEY }}" \
+            --environment "https://api.postman.com/environments/58965602-65597d28-8a69-4aea-9502-074dd65f0897?apikey=${{ secrets.POSTSA_API_KEY }}" \
+            --env-var "pacs008_uetr=762adade-c02f-441a-a12b-e940c1c022a6" \
+            --env-var "clob_settlement_tx_hash=65947e881619d0374c69a25481665f05f9e0d59e84cf79438961ed5bfefdd58b" \
+            --env-var "clob_settlement_ledger=65120726" \
+            --env-var "dao_treasury_public=GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJQW" \
+            --env-var "usd_deployment_amount=250000.00" \
+            --env-var "clob_cold_issuer=GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3" \
             --reporters cli,json \
             --reporter-json-export ./pipeline-results.json \
             --delay-request 2000 \
             --timeout-request 30000 \
-            --bail || true
+            --bail
 
       - name: Upload Results
         uses: actions/upload-artifact@v4

@@ -9,21 +9,29 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Strip duplicate content after </html>
+      - name: Restore original, fix Moov card, strip duplicate
         run: |
+          git checkout 2a176d9f91f7a82b922fefc3c3938a6fb1273b1d -- treasury/index.html
           python3 - <<'PYEOF'
           with open('treasury/index.html', 'rb') as f:
               data = f.read()
+          old = b"var moovCredit=localStorage.getItem('moov_stco_credit');if(moovCredit){document.getElementById('moovSubledgerBalance').textContent='';"
+          new = b"fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHëILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW').then(r=>r.json()).then(d=>{var b=d.balances.find(x=>x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3');document.getElementById('moovSubledgerBalance').textContent=b?'$'+parseFloat(b.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'\u2014';}).catch(function(){document.getElementById('moovSubledgerBalance').textContent='\u2014';});"
+          if old in data:
+              data = data.replace(old, new, 1)
+              print('Moov card: localStorage replaced with Horizon fetch')
+          else:
+              print('Moov card: old pattern not found, skipping')
           marker = b'</html>'
           idx = data.find(marker)
-          if idx == -1:
-              print('ERROR: </html> not found')
-              exit(1)
-          clean = data[:idx + len(marker)]
+          if idx != -1:
+              data = data[:idx + len(marker)]
+              print(f'Stripped to {len(data)} bytes')
           with open('treasury/index.html', 'wb') as f:
-              f.write(clean)
-          print(f'Truncated from {len(data)} to {len(clean)} bytes')
+              f.write(data)
           PYEOF
 
       - name: Commit and push
@@ -31,5 +39,5 @@ jobs:
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
           git add treasury/index.html
-          git diff --staged --quiet && echo "No changes needed" || git commit -m "fix: strip duplicate content after </html> in treasury/index.html"
+          git diff --staged --quiet && echo "No changes" || git commit -m "fix: restore original treasury dashboard + Horizon Moov card + strip duplicate"
           git push

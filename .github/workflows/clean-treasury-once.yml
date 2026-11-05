@@ -19,12 +19,12 @@ jobs:
           with open('treasury/index.html', 'rb') as f:
               data = f.read()
           old = b"var moovCredit=localStorage.getItem('moov_stco_credit');if(moovCredit){document.getElementById('moovSubledgerBalance').textContent='';"
-          new = b"fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHëILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW').then(r=>r.json()).then(d=>{var b=d.balances.find(x=>x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3');document.getElementById('moovSubledgerBalance').textContent=b?'$'+parseFloat(b.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'\u2014';}).catch(function(){document.getElementById('moovSubledgerBalance').textContent='\u2014';});"
+          new = b"fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW').then(r=>r.json()).then(d=>{var b=d.balances.find(x=>x.asset_code===\"USD\"&&x.asset_issuer===\"GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3\");document.getElementById('moovSubledgerBalance').textContent=b?'$'+parseFloat(b.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}).catch(function(){document.getElementById('moovSubledgerBalance').textContent='--';});"
           if old in data:
               data = data.replace(old, new, 1)
               print('Moov card: localStorage replaced with Horizon fetch')
           else:
-              print('Moov card: old pattern not found, skipping')
+              print('Moov card: old pattern not found, skipping (will still strip duplicate)')
           marker = b'</html>'
           idx = data.find(marker)
           if idx != -1:

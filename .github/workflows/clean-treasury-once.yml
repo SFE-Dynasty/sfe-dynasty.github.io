@@ -15,24 +15,41 @@ jobs:
       - name: Restore original, fix Moov card, strip duplicate
         run: |
           git checkout 2a176d9f91f7a82b922fefc3c3938a6fb1273b1d -- treasury/index.html
-          python3 - <<'PYEOF'
-          with open('treasury/index.html', 'rb') as f:
-              data = f.read()
-          old = b"var moovCredit=localStorage.getItem('moov_stco_credit');if(moovCredit){document.getElementById('moovSubledgerBalance').textContent='';"
-          new = b"fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW').then(r=>r.json()).then(d=>{var b=d.balances.find(x=>x.asset_code===\"USD\"&&x.asset_issuer===\"GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3\");document.getElementById('moovSubledgerBalance').textContent=b?'$'+parseFloat(b.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}).catch(function(){document.getElementById('moovSubledgerBalance').textContent='--';});"
-          if old in data:
-              data = data.replace(old, new, 1)
-              print('Moov card: localStorage replaced with Horizon fetch')
-          else:
-              print('Moov card: old pattern not found, skipping (will still strip duplicate)')
-          marker = b'</html>'
-          idx = data.find(marker)
-          if idx != -1:
-              data = data[:idx + len(marker)]
-              print(f'Stripped to {len(data)} bytes')
-          with open('treasury/index.html', 'wb') as f:
-              f.write(data)
-          PYEOF
+          python3 << 'PYEOF'
+import re
+
+with open('treasury/index.html', 'rb') as f:
+    data = f.read()
+
+print(f'Original size: {len(data)} bytes')
+
+# Fix Moov card: replace localStorage block with live Horizon fetch
+# The original code pattern (flexible match)
+old_pattern = rb"var moovCredit=localStorage\.getItem\('moov_stco_credit'\);if\(moovCredit\)\{document\.getElementById\('moovSubledgerBalance'\)\.textContent=[^;]*;"
+new_code = b"fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW').then(r=>r.json()).then(d=>{var b=d.balances.find(x=>x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3');document.getElementById('moovSubledgerBalance').textContent=b?'$'+parseFloat(b.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}).catch(function(){document.getElementById('moovSubledgerBalance').textContent='--';});"
+
+match = re.search(old_pattern, data)
+if match:
+    data = data[:match.start()] + new_code + data[match.end():]
+    print('Moov card: localStorage replaced with Horizon fetch')
+else:
+    print('Moov card: pattern not found - printing surrounding context for debug')
+    idx = data.find(b'moovSubledgerBalance')
+    if idx != -1:
+        print(repr(data[max(0,idx-100):idx+200]))
+
+# Strip duplicate after </html>
+marker = b'</html>'
+idx = data.find(marker)
+if idx != -1:
+    data = data[:idx + len(marker)]
+    print(f'Stripped to {len(data)} bytes')
+
+with open('treasury/index.html', 'wb') as f:
+    f.write(data)
+
+print('Done.')
+PYEOF
 
       - name: Commit and push
         run: |

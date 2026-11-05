@@ -1,0 +1,35 @@
+name: Clean treasury/index.html (one-time)
+on:
+  workflow_dispatch:
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Strip duplicate content after </html>
+        run: |
+          python3 - <<'PYEOF'
+          with open('treasury/index.html', 'rb') as f:
+              data = f.read()
+          marker = b'</html>'
+          idx = data.find(marker)
+          if idx == -1:
+              print('ERROR: </html> not found')
+              exit(1)
+          clean = data[:idx + len(marker)]
+          with open('treasury/index.html', 'wb') as f:
+              f.write(clean)
+          print(f'Truncated from {len(data)} to {len(clean)} bytes')
+          PYEOF
+
+      - name: Commit and push
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add treasury/index.html
+          git diff --staged --quiet && echo "No changes needed" || git commit -m "fix: strip duplicate content after </html> in treasury/index.html"
+          git push

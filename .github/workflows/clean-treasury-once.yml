@@ -12,49 +12,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restore original, fix Moov card, strip duplicate
-        run: |
-          git checkout 2a176d9f91f7a82b922fefc3c3938a6fb1273b1d -- treasury/index.html
-          python3 << 'PYEOF'
-import re
+      - name: Restore original file
+        run: git checkout 2a176d9f91f7a82b922fefc3c3938a6fb1273b1d -- treasury/index.html
 
-with open('treasury/index.html', 'rb') as f:
-    data = f.read()
-
-print(f'Original size: {len(data)} bytes')
-
-# Fix Moov card: replace localStorage block with live Horizon fetch
-# The original code pattern (flexible match)
-old_pattern = rb"var moovCredit=localStorage\.getItem\('moov_stco_credit'\);if\(moovCredit\)\{document\.getElementById\('moovSubledgerBalance'\)\.textContent=[^;]*;"
-new_code = b"fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW').then(r=>r.json()).then(d=>{var b=d.balances.find(x=>x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3');document.getElementById('moovSubledgerBalance').textContent=b?'$'+parseFloat(b.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}).catch(function(){document.getElementById('moovSubledgerBalance').textContent='--';});"
-
-match = re.search(old_pattern, data)
-if match:
-    data = data[:match.start()] + new_code + data[match.end():]
-    print('Moov card: localStorage replaced with Horizon fetch')
-else:
-    print('Moov card: pattern not found - printing surrounding context for debug')
-    idx = data.find(b'moovSubledgerBalance')
-    if idx != -1:
-        print(repr(data[max(0,idx-100):idx+200]))
-
-# Strip duplicate after </html>
-marker = b'</html>'
-idx = data.find(marker)
-if idx != -1:
-    data = data[:idx + len(marker)]
-    print(f'Stripped to {len(data)} bytes')
-
-with open('treasury/index.html', 'wb') as f:
-    f.write(data)
-
-print('Done.')
-PYEOF
+      - name: Fix Moov card and strip duplicate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let html = fs.readFileSync('treasury/index.html', 'utf8');
+            const before = html.length;
+            const moovRegex = /var moovCredit=localStorage\.getItem\('moov_stco_credit'\);if\(moovCredit\)\{document\.getElementById\('moovSubledgerBalance'\)\.textContent=[^;]*;/;
+            const horizonFetch = "fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW').then(r=>r.json()).then(d=>{var b=d.balances.find(x=>x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3');document.getElementById('moovSubledgerBalance').textContent=b?'$'+parseFloat(b.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}).catch(function(){document.getElementById('moovSubledgerBalance').textContent='--';});";
+            if (moovRegex.test(html)) {
+              html = html.replace(moovRegex, horizonFetch);
+              console.log('Moov card: localStorage replaced with Horizon fetch');
+            } else {
+              console.log('Moov card: pattern not found');
+            }
+            const closeIdx = html.indexOf('</html>');
+            if (closeIdx !== -1) {
+              html = html.substring(0, closeIdx + 7);
+              console.log('Stripped to ' + html.length + ' chars');
+            }
+            fs.writeFileSync('treasury/index.html', html, 'utf8');
+            console.log('Done. Before: ' + before + ' After: ' + html.length);
 
       - name: Commit and push
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
           git add treasury/index.html
-          git diff --staged --quiet && echo "No changes" || git commit -m "fix: restore original treasury dashboard + Horizon Moov card + strip duplicate"
+          git diff --staged --quiet && echo "No changes" || git commit -m "fix: restore original treasury dashboard + live Horizon Moov card + strip duplicate"
           git push

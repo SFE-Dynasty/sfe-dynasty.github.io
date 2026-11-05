@@ -16,27 +16,19 @@ jobs:
         run: git checkout 2a176d9f91f7a82b922fefc3c3938a6fb1273b1d -- treasury/index.html
 
       - name: Fix Moov card and strip duplicate
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            let html = fs.readFileSync('treasury/index.html', 'utf8');
-            const before = html.length;
-            const moovRegex = /var moovCredit=localStorage\.getItem\('moov_stco_credit'\);if\(moovCredit\)\{document\.getElementById\('moovSubledgerBalance'\)\.textContent=[^;]*;/;
-            const horizonFetch = "fetch('https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW').then(r=>r.json()).then(d=>{var b=d.balances.find(x=>x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3');document.getElementById('moovSubledgerBalance').textContent=b?'$'+parseFloat(b.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}).catch(function(){document.getElementById('moovSubledgerBalance').textContent='--';});";
-            if (moovRegex.test(html)) {
-              html = html.replace(moovRegex, horizonFetch);
-              console.log('Moov card: localStorage replaced with Horizon fetch');
-            } else {
-              console.log('Moov card: pattern not found');
-            }
-            const closeIdx = html.indexOf('</html>');
-            if (closeIdx !== -1) {
-              html = html.substring(0, closeIdx + 7);
-              console.log('Stripped to ' + html.length + ' chars');
-            }
-            fs.writeFileSync('treasury/index.html', html, 'utf8');
-            console.log('Done. Before: ' + before + ' After: ' + html.length);
+        run: |
+          node -e "
+          const fs = require('fs');
+          let html = fs.readFileSync('treasury/index.html', 'utf8');
+          const moovRegex = /var moovCredit=localStorage\.getItem\('moov_stco_credit'\);if\(moovCredit\)\{document\.getElementById\('moovSubledgerBalance'\)\.textContent=[^;]*;/;
+          const gcat = 'GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW';
+          const issuer = 'GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3';
+          const newCode = 'fetch(\"https://horizon.stellar.org/accounts/' + gcat + '\").then(r=>r.json()).then(d=>{var b=d.balances.find(x=>x.asset_code===\"USD\"&&x.asset_issuer===\"' + issuer + '\");document.getElementById(\"moovSubledgerBalance\").textContent=b?\"$\"+parseFloat(b.balance).toLocaleString(\"en-US\",{minimumFractionDigits:2,maximumFractionDigits:2}):\"--\";}).catch(function(){document.getElementById(\"moovSubledgerBalance\").textContent=\"--\";});';
+          if (moovRegex.test(html)) { html = html.replace(moovRegex, newCode); console.log('Moov: replaced'); } else { console.log('Moov: not found'); }
+          const idx = html.indexOf('<\/html>');
+          if (idx !== -1) { html = html.substring(0, idx + 7); console.log('Stripped to ' + html.length); }
+          fs.writeFileSync('treasury/index.html', html);
+          "
 
       - name: Commit and push
         run: |

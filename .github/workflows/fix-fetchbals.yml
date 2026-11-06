@@ -7,22 +7,26 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Fix file
+      - name: Write correct file
         run: |
           python3 << 'PYEOF'
-          with open('treasury/index.html', 'r', encoding='utf-8') as f:
-              html = f.read()
-          marker = '</script></body></html>'
-          cut = html.rfind(marker)
-          html = html[:cut + len(marker)]
-          with open('treasury/index.html', 'w', encoding='utf-8') as f:
-              f.write(html)
-          print('DONE', len(html))
+          html = open('treasury/index.html', encoding='utf-8').read()
+          # Find the fetchBals function and replace it entirely
+          import re
+          # Replace everything from "async function fetchBals" to the line ending with "setInterval(fetchBals,10000);"
+          fixed = re.sub(
+              r'async function fetchBals\(\)\{.*?setInterval\(fetchBals,10000\);',
+              "async function fetchBals(){try{var r=await fetch('https://horizon.stellar.org/accounts/'+DAO);var d=await r.json();(d.balances||[]).forEach(function(b){var k=b.asset_type==='native'?'XLM':b.asset_code;var el=document.querySelector('[data-asset="'+k+'"]');if(el){el.textContent=parseFloat(b.balance).toFixed(2);el.classList.add('tf');setTimeout(function(){el.classList.remove('tf');},1000);}});var usdBal=(d.balances||[]).find(function(x){return x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3';});document.getElementById('moovSubledgerBalance').textContent=usdBal?'$'+parseFloat(usdBal.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}catch(e){document.getElementById('moovSubledgerBalance').textContent='--';}}fetchBals();setInterval(fetchBals,10000);",
+              html,
+              flags=re.DOTALL
+          )
+          open('treasury/index.html', 'w', encoding='utf-8').write(fixed)
+          print('Done, length:', len(fixed))
           PYEOF
       - name: Commit and push
         run: |
           git config user.email "ddennis@sfemeraldtrust.com"
           git config user.name "SFE-Dynasty"
           git add treasury/index.html
-          git diff --staged --quiet || git commit -m "fix: treasury/index.html - remove duplicate tail after </script></body></html>"
+          git diff --staged --quiet || git commit -m "fix: rewrite fetchBals - complete correct function, no truncation"
           git push

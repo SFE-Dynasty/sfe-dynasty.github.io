@@ -11,22 +11,30 @@ jobs:
         run: |
           python3 << 'PYEOF'
           html = open('treasury/index.html', encoding='utf-8').read()
-          # Find the fetchBals function and replace it entirely
           import re
-          # Replace everything from "async function fetchBals" to the line ending with "setInterval(fetchBals,10000);"
+          # The file is broken: fetchBals is cut off at usdBal?'\n
+          # Match from "async function fetchBals" to the broken truncated end (usdBal?'\n)
           fixed = re.sub(
-              r'async function fetchBals\(\)\{.*?setInterval\(fetchBals,10000\);',
-              "async function fetchBals(){try{var r=await fetch('https://horizon.stellar.org/accounts/'+DAO);var d=await r.json();(d.balances||[]).forEach(function(b){var k=b.asset_type==='native'?'XLM':b.asset_code;var el=document.querySelector('[data-asset="'+k+'"]');if(el){el.textContent=parseFloat(b.balance).toFixed(2);el.classList.add('tf');setTimeout(function(){el.classList.remove('tf');},1000);}});var usdBal=(d.balances||[]).find(function(x){return x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3';});document.getElementById('moovSubledgerBalance').textContent=usdBal?'$'+parseFloat(usdBal.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}catch(e){document.getElementById('moovSubledgerBalance').textContent='--';}}fetchBals();setInterval(fetchBals,10000);",
+              r"async function fetchBals\(\)\{.*?usdBal\?'\n",
+              "async function fetchBals(){try{var r=await fetch('https://horizon.stellar.org/accounts/'+DAO);var d=await r.json();(d.balances||[]).forEach(function(b){var k=b.asset_type==='native'?'XLM':b.asset_code;var el=document.querySelector('[data-asset=\"'+k+'\"]');if(el){el.textContent=parseFloat(b.balance).toFixed(2);el.classList.add('tf');setTimeout(function(){el.classList.remove('tf');},1000);}});var usdBal=(d.balances||[]).find(function(x){return x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3';});document.getElementById('moovSubledgerBalance').textContent=usdBal?'$'+parseFloat(usdBal.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}catch(e){document.getElementById('moovSubledgerBalance').textContent='--';}}fetchBals();setInterval(fetchBals,10000);\n",
               html,
               flags=re.DOTALL
           )
+          if fixed == html:
+              print('WARNING: regex did not match, trying fallback')
+              # Fallback: replace the entire broken line
+              fixed = html.replace(
+                  "document.getElementById('moovSubledgerBalance').textContent=usdBal?'\n",
+                  "document.getElementById('moovSubledgerBalance').textContent=usdBal?'$'+parseFloat(usdBal.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}catch(e){document.getElementById('moovSubledgerBalance').textContent='--';}}fetchBals();setInterval(fetchBals,10000);\n"
+              )
           open('treasury/index.html', 'w', encoding='utf-8').write(fixed)
-          print('Done, length:', len(fixed))
+          changed = fixed != html
+          print('Changed:', changed, 'Length:', len(fixed))
           PYEOF
       - name: Commit and push
         run: |
           git config user.email "ddennis@sfemeraldtrust.com"
           git config user.name "SFE-Dynasty"
           git add treasury/index.html
-          git diff --staged --quiet || git commit -m "fix: rewrite fetchBals - complete correct function, no truncation"
+          git diff --staged --quiet || git commit -m "fix: restore complete fetchBals function - fix truncation at usdBal"
           git push

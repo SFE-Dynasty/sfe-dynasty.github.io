@@ -1,0 +1,34 @@
+name: Fix fetchBals
+on: [workflow_dispatch]
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch fetchBals
+        run: |
+          python3 - <<'PYEOF'
+          with open('treasury/index.html','r',encoding='utf-8') as f:
+              html = f.read()
+          OLD = 'async function fetchBals(){try{var r=await fetch(\'https://horizon.stellar.org/accounts/\'+DAO);var d=await r.json();(d.balances||[]).forEach(function(b){var k=b.asset_type===\'native\'?\'XLM\'\:b.asset_code;var el=document.querySelector(\'[data-asset="\'+k+\'"]\'\);if(el){el.textContent=parseFloat(b.balance).toFixed(2);el.classList.add(\'tf\');setTimeout(function(){el.classList.remove(\'tf\');},1000);}});fetch("https://horizon.stellar.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW").then(r=>r.json()).then(d=>{var usdBal=d.balances.find(function(x){return x.asset_code==="USD"&&x.asset_issuer==="GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3";});document.getElementById("moovSubledgerBalance").textContent=usdBal?"$"+parseFloat(usdBal.balance).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):"--";}catch(e){document.getElementById("moovSubledgerBalance").textContent="--";}}fetchBals();setInterval(fetchBals,10000);'
+          NEW = 'async function fetchBals(){try{var r=await fetch(\'https://horizon.stellar.org/accounts/\'+DAO);var d=await r.json();(d.balances||[]).forEach(function(b){var k=b.asset_type===\'native\'?\'XLM\'\:b.asset_code;var el=document.querySelector(\'[data-asset="\'+k+\'"]\'\);if(el){el.textContent=parseFloat(b.balance).toFixed(2);el.classList.add(\'tf\');setTimeout(function(){el.classList.remove(\'tf\');},1000);}});var usdBal=(d.balances||[]).find(function(x){return x.asset_code===\'USD\'&&x.asset_issuer===\'GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3\';});document.getElementById(\'moovSubledgerBalance\').textContent=usdBal?\'$\'+parseFloat(usdBal.balance).toLocaleString(\'en-US\',{minimumFractionDigits:2,maximumFractionDigits:2}):\'--\';}catch(e){document.getElementById(\'moovSubledgerBalance\').textContent=\'--\';}}
+fetchBals();setInterval(fetchBals,10000);'
+          if OLD in html:
+              html = html.replace(OLD, NEW, 1)
+              with open('treasury/index.html','w',encoding='utf-8') as f:
+                  f.write(html)
+              print('PATCHED')
+          else:
+              print('NOT FOUND - dumping context around fetchBals:')
+              idx = html.find('fetchBals')
+              print(repr(html[idx:idx+500]))
+          PYEOF
+      - name: Commit and push
+        run: |
+          git config user.email "ddennis@sfemeraldtrust.com"
+          git config user.name "SFE-Dynasty"
+          git add treasury/index.html
+          git diff --staged --quiet || git commit -m "fix: fetchBals - remove broken inner fetch, read USD from existing balances"
+          git push

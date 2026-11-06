@@ -10,16 +10,11 @@ jobs:
       - name: Fix file
         run: |
           python3 << 'PYEOF'
-          import re
           with open('treasury/index.html', 'r', encoding='utf-8') as f:
               html = f.read()
           marker = '</script></body></html>'
-          cut = html.find(marker)
-          if cut != -1:
-              html = html[:cut + len(marker)]
-          broken = re.compile(r"fetch\(\"https://horizon\.stellar\.org/accounts/GCATMWLZ7EU7EUWJ3LS6SBHKILWEUS3QBALHGF3XH4IZCOPJHFB5DJYW\"\)\.then\(r=>r\.json\(\)\)\.then\(d=>\{var usdBal=d\.balances\.find\(function\(x\)\{return x\.asset_code===\"USD\"&&x\.asset_issuer===\"GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3\";\}\);document\.getElementById\(\"moovSubledgerBalance\"\)\.textContent=usdBal\?\"\\\$\"+parseFloat\(usdBal\.balance\)\.toLocaleString\(\"en-US\",\{minimumFractionDigits:2,maximumFractionDigits:2\}\):\"--\";\}catch\(e\)\{document\.getElementById\(\"moovSubledgerBalance\"\)\.textContent=\"--\";\}\}", re.DOTALL)
-          clean = "var usdBal=(d.balances||[]).find(function(x){return x.asset_code==='USD'&&x.asset_issuer==='GCVDS3YYXQVFVVG4HSIBZAHQJAGMQUM6ZTJHUOQGEZHEV4VN2CX5SAT3';});document.getElementById('moovSubledgerBalance').textContent=usdBal?'$'+parseFloat(usdBal.balance).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';}catch(e){document.getElementById('moovSubledgerBalance').textContent='--';}}"
-          html = broken.sub(clean, html)
+          cut = html.rfind(marker)
+          html = html[:cut + len(marker)]
           with open('treasury/index.html', 'w', encoding='utf-8') as f:
               f.write(html)
           print('DONE', len(html))
@@ -29,5 +24,5 @@ jobs:
           git config user.email "ddennis@sfemeraldtrust.com"
           git config user.name "SFE-Dynasty"
           git add treasury/index.html
-          git diff --staged --quiet || git commit -m "fix: restore treasury/index.html - truncate duplicate JS, clean fetchBals"
+          git diff --staged --quiet || git commit -m "fix: treasury/index.html - remove duplicate tail after </script></body></html>"
           git push
